@@ -2,8 +2,6 @@ import requests
 import argparse
 import sys
 
-url = "https://stonecreek.pro/api/v2/login"
-
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Authenticate and obtain a token.")
 parser.add_argument("--url", default="https://stonecreek.pro/api/v2/login", help="API authentication endpoint")
@@ -19,7 +17,7 @@ credentials = {
 }
 
 try:
-    response = requests.post(url, json=credentials)
+    response = requests.post(args.url, json=credentials)
 
     response.raise_for_status()
 
