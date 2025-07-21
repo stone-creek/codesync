@@ -14,17 +14,21 @@ pip3 install requests
 python3 auth.py --login=[login] --password=[password]
 python3 download.py --auth=[token] --location=[workspace]
 python3 diff.py --auth=[token] --location=[workspace]
+python3 test.py --location=[workspace]
 python3 upload.py --auth=[token] --location=[workspace]
 ```
 
 ## Typical workflow
 
 ```
-auth_token=$(python3 auth.py --login=[login] --password=[password])
+export auth_token=$(python3 auth.py --login=[login] --password=[password])
 python3 download.py --auth=$(auth_token)
 
 # Work on files
 
 python3 diff.py --auth=$(auth_token)
+python3 test.py
 python3 upload.py --auth=$(auth_token)
 ```
+
+or just use './test-and-upload.sh', which will call test.py and upload.py.
