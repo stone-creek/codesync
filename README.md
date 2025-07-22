@@ -32,3 +32,7 @@ python3 upload.py --auth=$(auth_token)
 ```
 
 or just use './test-and-upload.sh', which will call test.py and upload.py.
+
+### Notes and references
+
+https://github.com/IUdalov/u-test

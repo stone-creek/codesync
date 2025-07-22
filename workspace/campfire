@@ -1,0 +1,79 @@
+-------------------------------------------------------------------------------
+-- Current implementation of campfire mod (May 2025)
+-------------------------------------------------------------------------------
+WorldItems.Property("campfire", "active", true)
+WorldItems.Property("campfire", "fuel", 3600)
+-----------------------------------------------------------
+WorldItems.ReactsTo("campfire", Events.OnEverySecond, function()
+    count = WorldItems.Count("campfire")
+    for pos = 1, count do
+        itemCampfire = WorldItems.At("campfire", pos)
+        active = WorldItems.Get(itemCampfire, "active")
+        if active then
+            fuel = WorldItems.Drain(itemCampfire, "fuel", 1)
+            if fuel == 0 then
+                WorldItems.Set(itemCampfire, "active", false)
+                Effects.Fire(itemCampfire, false)
+            end
+        end
+    end
+end)
+-----------------------------------------------------------
+WorldItems.ReactsTo("campfire", Events.OnItemUse,
+function(player,inventory_guid,class)
+    x,y,z = Game.InFrontOf(player,100,0)
+    if Players.RemoveFromInventory(player,inventory_guid) then
+        newItem = WorldItems.SpawnItemAt("campfire", x,y,z, 0)
+        Effects.Fire(newItem, true)
+    end
+end)
+----------------------------------------------------------- 
+WorldItems.ReactsTo("campfire", Events.OnLoad, 
+function(itemCampfire)
+    active = WorldItems.Get(itemCampfire, "active")
+    fuel = WorldItems.Get(itemCampfire, "fuel")
+    if active then
+        Game.Print("loaded campfire active with still some fuel left")
+    end
+    Effects.Fire(itemCampfire, active)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("campfire", Events.OnHover, 
+function(player,campfire)
+
+    fuel = WorldItems.Get(campfire, "fuel")
+    fuel_left = string.format("Fuel left:%d", fuel)
+
+    active = WorldItems.Get(campfire, "active")
+    active_status = active and "Status: active" or "Status: inactive"
+
+    Players.PopHover(player, campfire, "Campfire", fuel_left, active_status)
+end)
+-----------------------------------------------------------
+WorldItems.ReactsTo("campfire", Events.OnClick, 
+function(player,clickedCampfire)
+    
+    options = {}
+    -----------------------------------------------------
+    menu_addfuel = {"Add Fuel", function(player,campfire) 
+        Game.Print("Adding fuel to:" .. campfire)
+        fuel = WorldItems.Get(campfire, "fuel")
+        WorldItems.Set(campfire, "fuel", fuel + 20)
+    end }
+    table.insert(options, menu_addfuel)
+    -----------------------------------------------------
+    menu_putout = {"Put Out", function(player,campfire) 
+            WorldItems.Set(campfire, "active", false)
+            Effects.Fire(campfire, false)
+    end }
+    table.insert(options, menu_putout)
+    -----------------------------------------------------
+    menu_lightup = {"Light Up", function(player,campfire) 
+            WorldItems.Set(campfire, "active", true)
+            Effects.Fire(campfire, true)
+    end }
+    table.insert(options, menu_lightup)
+    -----------------------------------------------------
+    Game.Menu(player,clickedCampfire,options)
+end)
+-----------------------------------------------------------

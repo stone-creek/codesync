@@ -1,0 +1,175 @@
+-------------------------------------------------------------------------------
+-- Current implementation of forest mod (June 2025)
+-------------------------------------------------------------------------------
+function tokenizeForestPart(str)
+    local tokens = {}
+    for token in str:gmatch("[^,]+") do
+        table.insert(tokens, token:match("^%s*(.-)%s*$")) -- trim whitespace
+    end
+    return {
+        mesh = tokens[1],
+        x = tonumber(tokens[2]) or 0,
+        y = tonumber(tokens[3]) or 0,
+        z = tonumber(tokens[4]) or 0,
+        rotation = tonumber(tokens[5]) or 0,
+        age = tonumber(tokens[6]) or 0,
+        health = tonumber(tokens[7]) or 0
+    }
+end
+-------------------------------------------------------------------------------
+function calculateTreeMeshByAge(mesh,age)
+
+    local number = tonumber(mesh:match("^tree_(%d+)$"))
+
+    if math.floor(age / 8000) > number then
+        number = number + 1
+    end
+
+    if number > 15 then number = 15 end
+
+    return string.format("tree_%02d", number)
+end
+-------------------------------------------------------------------------------
+function distance3D(v1, v2)
+    local dx = v2[1] - v1[1]
+    local dy = v2[2] - v1[2]
+    local dz = v2[3] - v1[3]
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+end
+-------------------------------------------------------------------------------
+-- Will attempt 100 times to find a suitable nearby position for a new
+-- sapling spawn. Will consider Z axis to avoid spawning things in the air.
+-- 
+function findEmptyLocationNear(forest)
+        
+    local x,y,z = WorldItems.GetCoords(forest)
+
+    for pos = 1, 100 do
+        local newX = x + (math.random(6000) - 3000)
+        local newY = y + (math.random(6000) - 3000)
+        local newZ = Game.GroundAt(newX,newY,z)
+
+        if math.abs(newZ - z) < 20 then
+            nearest = WorldItems.NearestAt(newX,newY,newZ)
+            if nearest ~= nil then
+                distance = distance3D( {x,y,z}, {newX,newY,newZ} )
+                if distance > 300 then
+                    if pos > 1 then
+                        Game.Print("new forest tree took " .. pos .. " attempts")
+                    end
+
+                    Game.Print(string.format("New location: /debugdot %.0f,%.0f,%.0f",
+                        newX,newY,newZ))
+
+                    return true,newX,newY,newZ
+                end
+            end
+        end
+    end
+
+    Game.Print("Warning: could not find suitable location to new forest tree")
+    return false,0,0,0
+end
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forest", Events.OnItemUse,
+function(player,inventory_guid,class)
+    x,y,z = Game.InFrontOf(player,100,0)
+    if Players.RemoveFromInventory(player,inventory_guid) then
+        newForest = WorldItems.SpawnItemAt("forest",x,y,z,math.random(360))
+        
+        WorldItems.AddMeshTo(newForest, "tree_01",0,0,0,0) 
+        newTreeTable = {}
+        table.insert(newTreeTable, "tree_01,0,0,0,0,0,100")
+        WorldItems.Set(newForest, "trees", newTreeTable)
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forest", Events.OnLoad, 
+function(forest)
+    trees = WorldItems.Get(forest, "trees")
+    if trees then
+        for _, treeString in ipairs(trees) do
+            tree = tokenizeForestPart(treeString)
+            mesh = calculateTreeMeshByAge(tree.mesh, tree.age)
+
+            Game.Print(string.format("Loading forest tree:%s at %.0f,%.0f,%.0f",
+                mesh,tree.x,tree.y,tree.z))
+
+            WorldItems.AddMeshTo(forest,mesh,tree.x,tree.y,tree.z,tree.rotation)
+        end
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forest", Events.OnClick, 
+function(player,forest)
+    options = {}
+    menu_choptree = {"Chop Tree", function(player,forest) 
+        Game.Print("Missing chop tree code")
+    end }
+    table.insert(options, menu_choptree)
+    Game.Menu(player,forest,options)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forest", Events.OnEveryMinute, 
+function()
+
+    local count = WorldItems.Count("forest")
+    for pos = 1, count do
+        local forest = WorldItems.At("forest", pos)
+        local trees = WorldItems.Get(forest, "trees")
+        local newTreeTable = {}
+        
+        -- Increase age of each tree
+        for _,treeString in ipairs(trees) do
+            local tree = tokenizeForestPart(treeString)
+            tree.age = tree.age + math.random(3)
+            local oldMesh = tree.mesh
+            local calculatedMesh = calculateTreeMeshByAge(tree.mesh, tree.age)
+            new_tree = string.format("%s,%.0f,%.0f,%.0f,%.0f,%d,%d",
+                calculatedMesh,
+                tree.x,
+                tree.y,
+                tree.z,
+                tree.rotation,
+                tree.age,
+                tree.health)
+            table.insert(newTreeTable,new_tree)
+
+            -- Update tree mesh if changed
+            if oldMesh ~= calculatedMesh then
+                Game.Print(string.format("Replacing tree mesh:%s for %s", oldMesh, calculatedMesh))
+                WorldItems.ReplaceMeshAt(forest, 
+                    calculatedMesh,
+                    tree.x,tree.y,tree.z,tree.rotation)
+            end
+        end
+
+        -- Spawn saplings
+        if math.random(3600) < 10 and #trees < 30 then
+
+            Game.Print("Attempting to spawn a new sapling")
+            local valid,newX,newY,newZ = findEmptyLocationNear(forest)
+            if valid then
+                local x,y,z = WorldItems.GetCoords(forest)
+                newX = newX - x
+                newY = newY - y
+                newZ = newZ - z
+                local newRotation = math.random(360)
+                local new_sapling = string.format(
+                    "tree_01,%.0f,%.0f,%.0f,%.0f,%d,%d",
+                    newX,
+                    newY,
+                    newZ,
+                    newRotation,
+                    0,
+                    100)
+                Game.Print("new sapling:" .. new_sapling)
+                table.insert(newTreeTable,new_sapling)
+                WorldItems.AddMeshTo(forest,"tree_01",newX,newY,newZ,newRotation)
+            end
+        end
+
+        WorldItems.Set(forest, "trees", newTreeTable)
+
+    end
+end)

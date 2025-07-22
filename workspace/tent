@@ -1,0 +1,46 @@
+-------------------------------------------------------------------------------
+-- Current implementation of tent mod
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("tent", Events.OnItemUse,
+function(player,inventory_guid,class)
+    Game.Print("Using tent, updated")
+    x,y,z = Game.InFrontOf(player,99,0)
+    if Players.RemoveFromInventory(player,inventory_guid) then
+        new_tent = WorldItems.SpawnItemAt("tent", x,y,z, -1)
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("tent", Events.OnClick, 
+function(player,tent)
+
+    options = {}
+    -------------------------------------------------------
+    table.insert(options, {"Sleep", function(player,tent) 
+        -- if (Players.GetAttribute(player, "energy") > 30) then
+        --     Players.Flash(player, "I'm not feeling tired enough to sleep.")
+        -- else
+        --     success,result = Players.Action(player, {
+        --         interruptable = true,
+        --         allow_agro = false,
+        --         dark_screen = true,
+        --         player_invisible = true,
+        --         success = function(player)
+        --             Players.SetAttribute(player, "energy", 100)
+        --             Events.Broadcast("player.sleep",player)
+        --         end
+        --     } )
+        --     if not success then
+        --         Players.Flash(player, "I could not sleep. " .. result)
+        --     end
+        -- end
+    end })
+    -------------------------------------------------------
+    table.insert(options, {"Pack up", function(player,tent) 
+        -- Events.Broadcast("player.energy",player,{ cost = 10 })
+        WorldItems.DespawnItem(tent)
+        Players.AddToInventory(player, "tent")
+    end })
+    -------------------------------------------------------
+    Game.Menu(player,tent,options)
+end)
+-------------------------------------------------------------------------------

@@ -1,0 +1,66 @@
+-------------------------------------------------------------------------------
+-- Current implementation of construction mod (May 2025)
+-------------------------------------------------------------------------------
+function tokenizePart(str)
+    local tokens = {}
+    for token in str:gmatch("[^,]+") do
+        table.insert(tokens, token:match("^%s*(.-)%s*$")) -- trim whitespace
+    end
+    return {
+        mesh = tokens[1],
+        x = tonumber(tokens[2]) or 0,
+        y = tonumber(tokens[3]) or 0,
+        z = tonumber(tokens[4]) or 0,
+        rotation = tonumber(tokens[5]) or 0
+    }
+end
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("construction", Events.OnItemUse,
+function(player,inventory_guid,class)
+    x,y,z = Game.InFrontOf(player,100,0)
+    if Players.RemoveFromInventory(player,inventory_guid) then
+        newItem = WorldItems.SpawnItemAt("construction", x,y,z, 0)
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("construction", Events.OnLoad, 
+function(construction)
+    parts = WorldItems.Get(construction, "parts")
+    if parts then
+        for _, partString in ipairs(parts) do
+            part = tokenizePart(partString)
+            WorldItems.AddMeshTo(construction, part.mesh, part.x, part.y, part.z, part.rotation) 
+        end
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("construction", Events.OnClick, 
+function(player,construction)
+    options = {}
+    menu_buildingmode = {"Building Mode", function(player,construction) 
+        Players.BuildingMode(player,true)
+    end }
+    table.insert(options, menu_buildingmode)
+    Game.Menu(player,construction,options)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("construction", Events.OnRun, 
+function(player)
+    -- Force building mode off
+    Players.BuildingMode(player,false)
+    -- Game.Print("Player is running")
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("construction", Events.OnAddMesh, 
+function(construction,player,mesh,x,y,z,rotation)
+    parts = WorldItems.Get(construction, "parts")
+    if parts == nil then
+        parts = {}
+    end
+    new_part = string.format("%s,%.1f,%.1f,%.1f,%.1f", mesh, x,y,z,rotation)
+    table.insert(parts,new_part)
+    WorldItems.Set(construction,"parts",parts)
+    WorldItems.AddMeshTo(construction, mesh,x,y,z,rotation) 
+end)
+-------------------------------------------------------------------------------
+

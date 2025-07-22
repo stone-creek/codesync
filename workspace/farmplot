@@ -1,0 +1,108 @@
+--[[ --------------------------------------------------------------------------
+Farming
+
+Germinate
+Grow
+Harvest
+Wither
+
+Will generate 4x4 meshes of appropriate growth stage
+If stage is harvest, will enable the option to retrieve the produce
+
+]] ----------------------------------------------------------------------------
+WorldItems.Property("farmplot", "age", 0)
+WorldItems.Property("farmplot", "type", "onion")
+-------------------------------------------------------------------------------
+function calculateAge(age)
+    if age < 30 then
+        return "germinate"
+    elseif age < 60 then
+        return "grow"
+    elseif age < 90 then
+        return "harvest"
+    end
+
+    return "wither"
+end
+-------------------------------------------------------------------------------
+function calculateMeshByAge(type, age)
+    return string.format("%s_%s", type, calculateAge(age))
+end
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnHover, 
+function(player,farmplot)
+
+    age = WorldItems.Get(farmplot, "age")
+    type = WorldItems.Get(farmplot, "type")
+
+    crop_type = string.format("Plot: %ss", type)
+    stage_message = string.format("Current stage:%s", calculateAge(age))
+    remaining_until = string.format("Time until next phase:%d", 0)
+
+    -- active_status = active and "Status: active" or "Status: inactive"
+
+    Players.PopHover(player, farmplot, crop_type, stage_message, remaining_until)
+end)
+-----------------------------------------------------------
+function spawnPlants(farmplot,age)
+    mesh = calculateMeshByAge(type, age)
+    for x = 0, 4 do 
+        for y = 0, 4 do
+            posX = x * 43 - 90
+            posY = y * 43 - 90
+            message = string.format("Mesh %s at %.1f,%.1f", mesh, posX, posY)
+            Game.Print(message)
+            WorldItems.AddMeshTo(farmplot, mesh, posX, posY, 0, 0)
+        end
+    end
+end
+-------------------------------------------------------------------------------
+function despawnPlants(farmplot)
+    for x = 0, 4 do 
+        for y = 0, 4 do
+            posX = x * 43 - 90
+            posY = y * 43 - 90
+            WorldItems.AddMeshTo(farmplot, mesh, posX, posY, 0, 0)
+        end
+    end
+end
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnItemUse,
+function(player,inventory,class)
+    x,y,z = Game.InFrontOf(player,100,0)
+    if Players.RemoveFromInventory(player,inventory) then
+        farmplot = WorldItems.SpawnItemAt("farmplot", x,y,z, 0)
+        spawnPlants(farmplot,0)
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnLoad, 
+function(farmplot)
+    age = WorldItems.Get(farmplot, "age")
+    type = WorldItems.Get(farmplot, "type")
+    mesh = calculateMeshByAge(type, age)
+    message = string.format("Loaded farm age %d", age)
+    Game.Print(message)
+    spawnPlants(farmplot,age)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnAddMesh, 
+function(farmplot,player,mesh,x,y,z,rotation)
+    Game.Print("AddMesh:" .. mesh)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnEverySecond, 
+function()
+    count = WorldItems.Count("farmplot")
+    for pos = 1, count do
+        farmplot = WorldItems.At("farmplot", pos)
+        age = WorldItems.Get(farmplot, "age")
+        type = WorldItems.Get(farmplot, "type")
+        oldMesh = calculateMeshByAge(type, age)
+        newMesh = calculateMeshByAge(type, age + 1)
+        if (oldMesh ~= newMesh) then
+            Game.Print("MISSING RESPAWN")
+        end
+        WorldItems.Set(farmplot, "age", age + 1)
+    end
+end)

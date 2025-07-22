@@ -1,0 +1,37 @@
+local test = require 'u-test'
+
+-------------------------------------------------------------------------------
+test.tokenizeForestPart = function()
+
+    tree = tokenizeForestPart("tree_12,-227,1036,5,23,51256,100")
+
+    test.equal(tree.mesh, 'tree_12')
+    test.equal(tree.x,-227)
+    test.equal(tree.y,1036)
+    test.equal(tree.z,5)
+    test.equal(tree.rotation,23)
+    test.equal(tree.age,51256)
+    test.equal(tree.health,100)
+
+end
+-------------------------------------------------------------------------------
+test.calculateTreeMeshByAge = function()
+
+    test.equal(calculateTreeMeshByAge('tree_05', 10), 'tree_05') -- not enough
+    test.equal(calculateTreeMeshByAge('tree_05', 10000000), 'tree_06') -- should age, leading zero
+    test.equal(calculateTreeMeshByAge('tree_12', 10000000), 'tree_13') -- should age
+    test.equal(calculateTreeMeshByAge('tree_15', 10000000), 'tree_15') -- upper limit
+
+end
+-------------------------------------------------------------------------------
+test.distance3D = function()
+    v1={0,0,0}
+    v2={10,10,0}
+    distance = distance3D(v1,v2)
+    test.assert(distance == math.sqrt(200))
+end
+-------------------------------------------------------------------------------
+-- function findEmptyLocationNear(forest)
+-------------------------------------------------------------------------------
+
+test.summary()
