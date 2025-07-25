@@ -8,10 +8,10 @@ parser = argparse.ArgumentParser(description="Run basic tests.")
 parser.add_argument("--location", default="workspace", help="Directory with files")
 args = parser.parse_args()
 
-def execute_lua(mockups_code, unit_tests, code, test_cases):
+def execute_lua(filename,mockups_code, unit_tests, code, test_cases):
     result = subprocess.run(['lua', '-e', mockups_code, '-e', unit_tests, '-e', code, '-e', test_cases], capture_output=True, text=True)
     if result.stderr.strip():
-        print("Lua Error:", result.stderr.strip())
+        print(f"Lua Error on {filename}: {result.stderr.strip()}")
         sys.exit(1)  # Exit Python with error code 1, so bash sees failure
     print(result.stdout.strip())
 
@@ -36,6 +36,7 @@ try:
         if os.path.isfile(file_path):
             code = load (file_path)
             execute_lua(
+                filename,
                 load('stonecreek-mockups.lua'),
                 load('u-test.lua'),
                 code,
