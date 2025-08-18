@@ -3,9 +3,9 @@ local test = require 'u-test'
 -------------------------------------------------------------------------------
 test.tokenizeForestPart = function()
 
-    tree = tokenizeForestPart("tree_12,-227,1036,5,23,51256,100")
+    tree = tokenizeForestPart("SM_Conifer_03,-227,1036,5,23,51256,100")
 
-    test.equal(tree.mesh, 'tree_12')
+    test.equal(tree.mesh, 'SM_Conifer_03')
     test.equal(tree.x,-227)
     test.equal(tree.y,1036)
     test.equal(tree.z,5)
@@ -17,10 +17,10 @@ end
 -------------------------------------------------------------------------------
 test.calculateTreeMeshByAge = function()
 
-    test.equal(calculateTreeMeshByAge('tree_05', 10), 'tree_05') -- not enough
-    test.equal(calculateTreeMeshByAge('tree_05', 10000000), 'tree_06') -- should age, leading zero
-    test.equal(calculateTreeMeshByAge('tree_12', 10000000), 'tree_13') -- should age
-    test.equal(calculateTreeMeshByAge('tree_15', 10000000), 'tree_15') -- upper limit
+    test.equal(calculateTreeMeshByAge('SM_Conifer_01', 10), 'SM_Conifer_01') -- not enough
+    test.equal(calculateTreeMeshByAge('SM_Conifer_01', 10000000), 'SM_Conifer_02') -- should age
+    test.equal(calculateTreeMeshByAge('SM_Conifer_02', 10000000), 'SM_Conifer_03') -- should age, leading zero
+    test.equal(calculateTreeMeshByAge('SM_Conifer_03', 10000000), 'SM_Conifer_03') -- upper limit
 
 end
 -------------------------------------------------------------------------------
@@ -29,6 +29,12 @@ test.distance3D = function()
     v2={10,10,0}
     distance = distance3D(v1,v2)
     test.assert(distance == math.sqrt(200))
+end
+-------------------------------------------------------------------------------
+test.testMigrate = function()
+    test.assert(migrateTreeMesh("tree_01") == "SM_Conifer_03")
+    test.assert(migrateTreeMesh("something_else_1234") == "something_else_1234")
+    test.assert(migrateTreeMesh("SM_Conifer_03") == "SM_Conifer_03")
 end
 -------------------------------------------------------------------------------
 -- function findEmptyLocationNear(forest)

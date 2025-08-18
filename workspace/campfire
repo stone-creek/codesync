@@ -63,14 +63,22 @@ function(player,clickedCampfire)
     table.insert(options, menu_addfuel)
     -----------------------------------------------------
     menu_putout = {"Put Out", function(player,campfire) 
-            WorldItems.Set(campfire, "active", false)
-            Effects.Fire(campfire, false)
+        WorldItems.Set(campfire, "active", false)
+        Effects.Fire(campfire, false)
     end }
     table.insert(options, menu_putout)
     -----------------------------------------------------
     menu_lightup = {"Light Up", function(player,campfire) 
-            WorldItems.Set(campfire, "active", true)
-            Effects.Fire(campfire, true)
+        Players.Action(player,"campfire_lightup", 3, {
+            interruptable = true,
+            on_completed = function(player)
+                WorldItems.Set(campfire, "active", true)
+                Effects.Fire(campfire, true)
+            end,
+            on_interrupted = function(player)
+                Player.FlashMessage(player, "Did not finish light up")
+            end
+        } )
     end }
     table.insert(options, menu_lightup)
     -----------------------------------------------------

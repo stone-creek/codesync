@@ -50,8 +50,7 @@ function spawnPlants(farmplot,age)
         for y = 0, 4 do
             posX = x * 43 - 90
             posY = y * 43 - 90
-            message = string.format("Mesh %s at %.1f,%.1f", mesh, posX, posY)
-            Game.Print(message)
+            -- Game.Print(string.format("Mesh %s at %.1f,%.1f", mesh, posX, posY))
             WorldItems.AddMeshTo(farmplot, mesh, posX, posY, 0, 0)
         end
     end
@@ -81,14 +80,13 @@ function(farmplot)
     age = WorldItems.Get(farmplot, "age")
     type = WorldItems.Get(farmplot, "type")
     mesh = calculateMeshByAge(type, age)
-    message = string.format("Loaded farm age %d", age)
-    Game.Print(message)
+    -- Game.Print(string.format("Loaded farm age %d", age))
     spawnPlants(farmplot,age)
 end)
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("farmplot", Events.OnAddMesh, 
 function(farmplot,player,mesh,x,y,z,rotation)
-    Game.Print("AddMesh:" .. mesh)
+    -- Game.Print("AddMesh:" .. mesh)
 end)
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("farmplot", Events.OnEverySecond, 

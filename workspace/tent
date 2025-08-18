@@ -10,25 +10,12 @@ function(player,inventory_guid,class)
     end
 end)
 -------------------------------------------------------------------------------
-function OnFinishedPrepareTent(player)
-    Game.Print("OnFinishedPrepareTent called!")
-    Players.Action(player, "", 10, {
-        OnComplete = function(player)
-            Game.Print("inner function inside OnFinishedPrepareTent called!")
-            Players.SetAttribute(player, "energy", 100)
-            Events.Broadcast("player.sleep",player)
-        end
-    })
-end
--------------------------------------------------------------------------------
 WorldItems.ReactsTo("tent", Events.OnClick, 
 function(player,tent)
 
     options = {}
     -------------------------------------------------------
     table.insert(options, {"Sleep", function(player,tent) 
-
-        Players.Action(player,"sleep", 5, {})
 
         if (Players.GetAttribute(player, "energy") > 50) then
             Players.FlashMessage(player, "I'm not feeling tired enough to sleep.")
@@ -39,10 +26,11 @@ function(player,tent)
                 dark_screen = true,
                 player_invisible = true,
                 on_completed = function(player)
-                    OnFinishedPrepareTent(player)
+                    Players.SetAttribute(player, "energy", 100)
+                    Events.Broadcast("player.sleep",player)
                 end,
                 on_interrupted = function(player)
-                    Players.FlashMessage(player, "I could not sleep. " .. result)
+                    Players.FlashMessage(player, "I could not sleep. ")
                 end
             } )
         end
@@ -57,3 +45,4 @@ function(player,tent)
     Game.Menu(player,tent,options)
 end)
 -------------------------------------------------------------------------------
+

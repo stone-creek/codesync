@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 Game = {}
 Game.Print = function(message)
-    print("GAMEPRINT:" .. message)
+    -- print("GAMEPRINT:" .. message)
 end
 Game.InFrontOf = function(player,x,y)
     return 1,2,3
@@ -28,7 +28,7 @@ end
 WorldItems.ReactsTo = function(object,event,callback) 
 
     if event == Events.OnItemUse then 
-        print("ONITEMUSE")
+        -- print("ONITEMUSE")
         callback("player","inventory","class")
     end
 
