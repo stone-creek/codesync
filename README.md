@@ -11,28 +11,31 @@ pip3 install requests
 ## Commands
 
 ```
-python3 auth.py --login=[login] --password=[password]
-python3 download.py --auth=[token] --location=[workspace]
-python3 diff.py --auth=[token] --location=[workspace]
-python3 test.py --location=[workspace]
-python3 upload.py --auth=[token] --location=[workspace]
+python3 auth.py --url=[url] --login=[login] --password=[password]
+python3 download.py --url=[url] --auth=[token] --location=[workspace]
+python3 diff.py --url=[url] --auth=[token] --location=[workspace]
+python3 test.py --url=[url] --location=[workspace]
+python3 upload.py --url=[url] --auth=[token] --location=[workspace]
 ```
 
 ## Typical workflow
 
 ```
-export auth_token=$(python3 auth.py --login=[login] --password=[password])
-python3 download.py --auth=$(auth_token)
+export auth_token=$(python3 auth.py --url=[url] --login=[login] --password=[password])
+python3 download.py --url=[url] --auth=$(auth_token)
 
 # Work on files
 
-python3 diff.py --auth=$(auth_token)
+python3 diff.py --url=[url] --auth=$(auth_token)
 python3 test.py
-python3 upload.py --auth=$(auth_token)
+python3 upload.py --url=[url] --auth=$(auth_token)
 ```
 
 or just use './test-and-upload.sh', which will call test.py and upload.py.
 
 ### Notes and references
+
+URL on production: 'https://stonecreek.pro'
+URL on staging: 'http://192.168.50.70:8088'
 
 https://github.com/IUdalov/u-test

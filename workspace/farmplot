@@ -69,7 +69,7 @@ end
 WorldItems.ReactsTo("farmplot", Events.OnItemUse,
 function(player,inventory,class)
     x,y,z = Game.InFrontOf(player,100,0)
-    if Players.RemoveFromInventory(player,inventory) then
+    if Inventory.RemoveFrom(player,inventory) then
         farmplot = WorldItems.SpawnItemAt("farmplot", x,y,z, 0)
         spawnPlants(farmplot,0)
     end

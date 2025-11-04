@@ -3,10 +3,10 @@
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("tent", Events.OnItemUse,
 function(player,inventory_guid,class)
-    Game.Print("Using tent, updated")
-    x,y,z = Game.InFrontOf(player,99,0)
-    if Players.RemoveFromInventory(player,inventory_guid) then
-        new_tent = WorldItems.SpawnItemAt("tent", x,y,z, -1)
+    x,y,z, rotation = Game.InFrontOf(player,200,180)
+    Game.Print(string.format("Spawning tent at %.0f,%0.f,%0.f, rotation=%0.f", x, y, z, rotation))
+    if Inventory.RemoveFrom(player,inventory_guid) then
+        new_tent = WorldItems.SpawnItemAt("tent", x,y,z, rotation)
     end
 end)
 -------------------------------------------------------------------------------
@@ -20,17 +20,34 @@ function(player,tent)
         if (Players.GetAttribute(player, "energy") > 50) then
             Players.FlashMessage(player, "I'm not feeling tired enough to sleep.")
         else
-            Players.Action(player,"sleep", 10, {
-                interruptable = true,
-                allow_aggro = false,
-                dark_screen = true,
-                player_invisible = true,
+            local radius = WorldItems.GetRadius(tent)
+            Game.Print(string.format("Radius: %0.f", radius))
+            local coords = WorldItems.GetCoords(tent)
+            Game.Print(string.format("Heading to tent at %.0f,%0.f,%0.f", coords.x, coords.y, coords.z))
+            Players.MoveTo(player, coords, { 
+                acceptance_radius = 50 + radius,
                 on_completed = function(player)
-                    Players.SetAttribute(player, "energy", 100)
-                    Events.Broadcast("player.sleep",player)
+                    
+                    Game.Print("Sleep: movement to tent completed")
+
+                    Players.Action(player,"sleep", 10, {
+                        interruptable = true,
+                        allow_aggro = false,
+                        dark_screen = true,
+                        player_invisible = true,
+                        action_bar = true,
+                        display_text = "Sleeping...",
+                        on_completed = function(player)
+                            Players.SetAttribute(player, "energy", 100)
+                            -- Events.Broadcast("player.sleep",player)
+                        end,
+                        on_interrupted = function(player)
+                            Players.FlashMessage(player, "I could not sleep well. ")
+                        end
+                    } )
                 end,
                 on_interrupted = function(player)
-                    Players.FlashMessage(player, "I could not sleep. ")
+                    Game.Print("Movement interrupted")
                 end
             } )
         end
@@ -39,7 +56,7 @@ function(player,tent)
     table.insert(options, {"Pack up", function(player,tent) 
         -- Events.Broadcast("player.energy",player,{ cost = 10 })
         WorldItems.DespawnItem(tent)
-        Players.AddToInventory(player, "tent")
+        Inventory.AddTo(player, "tent")
     end })
     -------------------------------------------------------
     Game.Menu(player,tent,options)

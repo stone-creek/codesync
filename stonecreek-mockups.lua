@@ -4,20 +4,24 @@ Game.Print = function(message)
     -- print("GAMEPRINT:" .. message)
 end
 Game.InFrontOf = function(player,x,y)
-    return 1,2,3
+    return 1,2,3,4
 end
+-------------------------------------------------------------------------------
+Zombies = {}
+Zombies.SpawnAt = function() end
 -------------------------------------------------------------------------------
 Players = {}
 Players.Count = function()
     return 2
 end
-Players.RemoveFromInventory = function(player,inventory)
+-------------------------------------------------------------------------------
+Inventory = {}
+Inventory.RemoveFrom = function(player,inventory)
     return true
 end
 -------------------------------------------------------------------------------
 Effects = {}
-Effects.Fire = function(item,enable)
-end
+Effects.Fire = function(item,enable) end
 -------------------------------------------------------------------------------
 Events = {}
 Events['OnItemUse'] = 1

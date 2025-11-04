@@ -4,7 +4,8 @@ import sys
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Authenticate and obtain a token.")
-parser.add_argument("--url", default="https://stonecreek.pro/api/v2/login", help="API authentication endpoint")
+# parser.add_argument("--url", default="https://stonecreek.pro/api/v2/login", help="API authentication endpoint")
+parser.add_argument("--url", required=True, help="API authentication endpoint")
 parser.add_argument("--login", required=True, help="Username or email, created at Discord")
 parser.add_argument("--password", required=True, help="Password")
 
@@ -17,7 +18,7 @@ credentials = {
 }
 
 try:
-    response = requests.post(args.url, json=credentials)
+    response = requests.post(args.url + "/api/v2/login", json=credentials)
 
     response.raise_for_status()
 

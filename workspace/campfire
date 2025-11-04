@@ -22,7 +22,7 @@ end)
 WorldItems.ReactsTo("campfire", Events.OnItemUse,
 function(player,inventory_guid,class)
     x,y,z = Game.InFrontOf(player,100,0)
-    if Players.RemoveFromInventory(player,inventory_guid) then
+    if Inventory.RemoveFrom(player,inventory_guid) then
         newItem = WorldItems.SpawnItemAt("campfire", x,y,z, 0)
         Effects.Fire(newItem, true)
     end
@@ -58,27 +58,55 @@ function(player,clickedCampfire)
     menu_addfuel = {"Add Fuel", function(player,campfire) 
         Game.Print("Adding fuel to:" .. campfire)
         fuel = WorldItems.Get(campfire, "fuel")
-        WorldItems.Set(campfire, "fuel", fuel + 20)
+        WorldItems.Set(campfire, "fuel", fuel + 120)
     end }
     table.insert(options, menu_addfuel)
     -----------------------------------------------------
     menu_putout = {"Put Out", function(player,campfire) 
-        WorldItems.Set(campfire, "active", false)
-        Effects.Fire(campfire, false)
+
+        local radius = WorldItems.GetRadius(campfire)
+        local coords = WorldItems.GetCoords(campfire)
+
+        Players.MoveTo(player, coords, {
+            acceptance_radius = 50 + radius,
+            on_completed = function(player)
+
+                Game.Print("on completed put out campfire")
+
+                WorldItems.Set(campfire, "active", false)
+                Effects.Fire(campfire, false)
+
+            end,
+            on_interrupted = function(player)
+
+                Game.Print("interrupted moving to put out")
+            end
+        })
     end }
     table.insert(options, menu_putout)
     -----------------------------------------------------
     menu_lightup = {"Light Up", function(player,campfire) 
-        Players.Action(player,"campfire_lightup", 3, {
-            interruptable = true,
+
+        local radius = WorldItems.GetRadius(campfire)
+        local coords = WorldItems.GetCoords(campfire)
+
+        Players.MoveTo(player, coords, {
+            acceptance_radius = 50 + radius,
             on_completed = function(player)
-                WorldItems.Set(campfire, "active", true)
-                Effects.Fire(campfire, true)
-            end,
-            on_interrupted = function(player)
-                Player.FlashMessage(player, "Did not finish light up")
+
+                Game.Print("on completed light up campfire")
+                Players.Action(player,"campfire_lightup", 4, {
+                    interruptable = true,
+                    on_completed = function(player)
+                        WorldItems.Set(campfire, "active", true)
+                        Effects.Fire(campfire, true)
+                    end,
+                    on_interrupted = function(player)
+                        Player.FlashMessage(player, "Did not finish light up")
+                    end
+                } )
             end
-        } )
+        })
     end }
     table.insert(options, menu_lightup)
     -----------------------------------------------------

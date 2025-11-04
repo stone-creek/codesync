@@ -18,7 +18,7 @@ end
 WorldItems.ReactsTo("construction", Events.OnItemUse,
 function(player,inventory_guid,class)
     x,y,z = Game.InFrontOf(player,100,0)
-    if Players.RemoveFromInventory(player,inventory_guid) then
+    if Inventory.RemoveFrom(player,inventory_guid) then
         newItem = WorldItems.SpawnItemAt("construction", x,y,z, 0)
     end
 end)

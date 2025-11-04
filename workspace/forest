@@ -49,26 +49,26 @@ end
 -- 
 function findEmptyLocationNear(forest)
         
-    local x,y,z = WorldItems.GetCoords(forest)
+    local coords = WorldItems.GetCoords(forest)
 
     for pos = 1, 100 do
-        local newX = x + (math.random(6000) - 3000)
-        local newY = y + (math.random(6000) - 3000)
-        local newZ = Game.GroundAt(newX,newY,z)
+        local newX = coords.x + (math.random(6000) - 3000)
+        local newY = coords.y + (math.random(6000) - 3000)
+        local newZ = Game.GroundAt(newX, newY, coords.z)
 
         if math.abs(newZ - z) < 20 then
-            nearest = WorldItems.NearestAt(newX,newY,newZ)
+            nearest = WorldItems.NearestAt(newX, newY, newZ)
             if nearest ~= nil then
-                distance = distance3D( {x,y,z}, {newX,newY,newZ} )
+                distance = distance3D( {coords.x, coords.y, coords.z}, {newX, newY, newZ} )
                 if distance > 300 then
                     if pos > 1 then
                         Game.Print("new forest tree took " .. pos .. " attempts")
                     end
 
                     Game.Print(string.format("New location: /debugdot %.0f,%.0f,%.0f",
-                        newX,newY,newZ))
+                        newX, newY, newZ))
 
-                    return true,newX,newY,newZ
+                    return true, newX, newY, newZ
                 end
             end
         end
@@ -78,10 +78,49 @@ function findEmptyLocationNear(forest)
     return false,0,0,0
 end
 -------------------------------------------------------------------------------
+function destroyTreeAt(forest,coords)
+
+    Debug.DrawSphere(coords.x,coords.y,coords.z, 200)
+
+    Game.Print("Destroy tree at called:" .. forest)
+    trees = WorldItems.Get(forest, "trees")
+    base_coords = WorldItems.GetCoords(forest)
+
+    Game.Print(string.format("WORLDITEM %s = %f,%f,%f", forest,base_coords.x,base_coords.y,base_coords.z))
+
+    if trees then
+        for treePos, treeString in ipairs(trees) do
+            tree = tokenizeForestPart(treeString)
+
+            distance = distance3D( {coords.x, coords.y, 0}, {tree.x + base_coords.x, tree.y + base_coords.y, 0} )
+                
+            if distance < 1100 then
+
+                Game.Print(string.format("%f,%f to %f,%f distance = %f...", coords.x,coords.y,tree.x,tree.y,distance))
+
+                -- Debug.DrawSphere(tree.x,tree.y,tree.z, 200)
+                Debug.DrawLine(coords.x,coords.y,coords.z,
+                                base_coords.x + tree.x,
+                                base_coords.y + tree.y,
+                                base_coords.z + tree.z)
+
+            --     Game.Print(string.format("Found tree at %d cm, destroying...", distance))
+            --     -- table.remove(trees, treePos)
+            --     -- WorldItems.Set(forest, "trees", trees)
+            --     -- WorldItems.DestroyMeshAt(forest,tree.x,tree.y,tree.z)
+            --     -- return true
+            end
+            
+        end
+    end
+
+    return false
+end
+-------------------------------------------------------------------------------
 WorldItems.ReactsTo("forest", Events.OnItemUse,
 function(player,inventory_guid,class)
     x,y,z = Game.InFrontOf(player,100,0)
-    if Players.RemoveFromInventory(player,inventory_guid) then
+    if Inventory.RemoveFrom(player,inventory_guid) then
         newForest = WorldItems.SpawnItemAt("forest",x,y,z,math.random(360))
         
         WorldItems.AddMeshTo(newForest, "SM_Conifer_01",0,0,0,0) 
@@ -107,24 +146,41 @@ function(forest)
     end
 end)
 -------------------------------------------------------------------------------
-function OnFinishedChoppingTree(player)
-    Game.Print("chopping tree finished - missing implementation")
+function OnFinishedChoppingTree(player, forest, coords)
+
+    if destroyTreeAt(forest,coords) then
+        Inventory.AddTo(player,"lumber")
+    else
+        Players.FlashMessage(player, "No lumber was obtained.")
+    end
+
 end
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("forest", Events.OnClick, 
-function(player,forest)
-    options = {}
-    menu_choptree = {"Chop Tree", function(player,forest) 
+function(player,forest,coords)
 
-        Game.Print("Chopping tree...")
-        Players.Action(player,"chopping_tree", 10, {
-            interruptable = true,
+    options = {}
+    -------------------------------------------------------
+    table.insert(options, {"Chop Tree", function(player,forest) 
+
+        Players.MoveTo(player, coords, {
+
+            acceptance_radius = 50,
             on_completed = function(player)
-                OnFinishedChoppingTree(player)
+                
+                Players.Action(player,"chopping_tree", 1, {
+                    interruptable = true,
+                    on_completed = function(player)
+
+                        OnFinishedChoppingTree(player, forest, coords)
+
+                    end
+                } )
             end
-        } )
-    end }
-    table.insert(options, menu_choptree)
+        })
+
+    end })
+    -------------------------------------------------------
     Game.Menu(player,forest,options)
 end)
 -------------------------------------------------------------------------------
@@ -168,10 +224,10 @@ function()
             Game.Print("Attempting to spawn a new sapling")
             local valid,newX,newY,newZ = findEmptyLocationNear(forest)
             if valid then
-                local x,y,z = WorldItems.GetCoords(forest)
-                newX = newX - x
-                newY = newY - y
-                newZ = newZ - z
+                local coords = WorldItems.GetCoords(forest)
+                newX = newX - coords.x
+                newY = newY - coords.y
+                newZ = newZ - coords.z
                 local newRotation = math.random(360)
                 local new_sapling = string.format(
                     "SM_Conifer_01,%.0f,%.0f,%.0f,%.0f,%d,%d",
