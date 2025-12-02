@@ -1,0 +1,33 @@
+-------------------------------------------------------------------------------
+-- Current implementation of axe mod (November 2025)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("axe", Events.OnItemUse,
+function(player,inventory_guid,class)
+    
+    local weapon_info = {}
+    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
+   
+    -- if !is_equipped then
+    
+        weapon_info = {
+            mesh = "axe",
+            offset = {0,0,-140},
+            rotator = {0,90,0},
+            scale = 1
+            -- type = "melee_2h",
+        }
+    -- end
+
+    Players.EquipWeapon(player, weapon_info)
+
+    -- Inventory.SetEquippedDot(inventory_guid, false)
+end)
+-------------------------------------------------------------------------------
+-- Players.ReactsTo("axe", Events.OnUseWeapon,
+-- function(player,weapon_data)
+
+--     -- Swing animation
+--     -- If hit, takes 40 health
+--     -- Uses 2 energy
+
+-- end)

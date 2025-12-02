@@ -14,6 +14,8 @@ Players = {}
 Players.Count = function()
     return 2
 end
+Players.EquipWeapon = function(player, weapon_info)
+end
 -------------------------------------------------------------------------------
 Inventory = {}
 Inventory.RemoveFrom = function(player,inventory)

@@ -1,0 +1,31 @@
+-------------------------------------------------------------------------------
+-- Current implementation of baseball bat mod (October 2025)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("baseball_bat", Events.OnItemUse,
+function(player,inventory_guid,class)
+    
+    local weapon_info = {}
+    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
+   
+    -- if !is_equipped then
+    
+        weapon_info = {
+            mesh = "baseball_bat",
+            scale = 0.66
+            -- type = "melee_2h",
+        }
+    -- end
+
+    Players.EquipWeapon(player, weapon_info)
+
+    -- Inventory.SetEquippedDot(inventory_guid, false)
+end)
+-------------------------------------------------------------------------------
+-- Players.ReactsTo("baseball_bat", Events.OnUseWeapon,
+-- function(player,weapon_data)
+
+--     -- Swing animation
+--     -- If hit, takes 40 health
+--     -- Uses 2 energy
+
+-- end)

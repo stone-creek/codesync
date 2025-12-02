@@ -1,0 +1,34 @@
+-------------------------------------------------------------------------------
+-- Current implementation of bow mod (November 2025)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("bow", Events.OnItemUse,
+function(player,inventory_guid,class)
+    
+    local weapon_info = {}
+    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
+   
+    -- if !is_equipped then
+    
+        weapon_info = {
+            mesh = "bow",
+            offset = {-4,24,-98},
+            rotator = {-144,82,-31},
+            scale = 0.5,
+            socket = "LeftHandSocket"
+            -- type = "ranged_1h",
+        }
+    -- end
+
+    Players.EquipWeapon(player, weapon_info)
+
+    -- Inventory.SetEquippedDot(inventory_guid, false)
+end)
+-------------------------------------------------------------------------------
+-- Players.ReactsTo("bow", Events.OnUseWeapon,
+-- function(player,weapon_data)
+
+--     -- Swing animation
+--     -- If hit, takes 40 health
+--     -- Uses 2 energy
+
+-- end)
