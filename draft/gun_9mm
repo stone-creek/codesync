@@ -1,0 +1,24 @@
+-------------------------------------------------------------------------------
+-- Current implementation of 9 mm gun mod (October 2025)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("gun_9mm", Events.OnItemUse,
+function(player,inventory_guid,class)
+    Players.UnequipWeapon()
+
+    local weapon_info = {
+        mesh = "gun_9mm",
+        type = "pistol"
+    }
+
+    Players.EquipWeapon(mesh, )
+    Inventory.SetEquippedDot(inventory_guid, true)
+end)
+-------------------------------------------------------------------------------
+Players.ReactsTo("baseball_bat", Events.OnUseWeapon,
+function(player,weapon_data)
+
+    -- Swing animation
+    -- If hit, takes 40 health
+    -- Uses 2 energy
+
+end)

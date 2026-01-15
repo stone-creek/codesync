@@ -11,8 +11,8 @@ function(player,inventory_guid,class)
     
         weapon_info = {
             mesh = "bow",
-            offset = {-4,24,-98},
-            rotator = {-144,82,-31},
+            offset = {0,0,0},
+            rotator = {0,0,0},
             scale = 0.5,
             socket = "LeftHandSocket"
             -- type = "ranged_1h",
