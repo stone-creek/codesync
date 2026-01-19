@@ -1,11 +1,29 @@
 -------------------------------------------------------------------------------
 -- Current implementation of forest mod (June 2025)
 -------------------------------------------------------------------------------
+
+MAX_TREES = 15
+SAPLING_CHANCE_EVERY_MINUTE = 1
+
+
 function migrateTreeMesh(mesh)
     if string.sub(mesh, 1, 5) == "tree_" then
         mesh = "SM_Conifer_03"
     end
     return mesh
+end
+-------------------------------------------------------------------------------
+-- Rotate a vector around its z axis
+function rotateZ(x, y, z, degrees)
+    local rad = math.rad(degrees)
+    local cos = math.cos(rad)
+    local sin = math.sin(rad)
+
+    local x2 = x * cos - y * sin
+    local y2 = x * sin + y * cos
+    local z2 = z
+
+    return x2, y2, z2
 end
 -------------------------------------------------------------------------------
 function tokenizeForestPart(str)
@@ -56,7 +74,7 @@ function findEmptyLocationNear(forest)
         local newY = coords.y + (math.random(6000) - 3000)
         local newZ = Game.GroundAt(newX, newY, coords.z)
 
-        if math.abs(newZ - z) < 20 then
+        if math.abs(newZ - coords.z) < 20 then
             nearest = WorldItems.NearestAt(newX, newY, newZ)
             if nearest ~= nil then
                 distance = distance3D( {coords.x, coords.y, coords.z}, {newX, newY, newZ} )
@@ -76,45 +94,6 @@ function findEmptyLocationNear(forest)
 
     Game.Print("Warning: could not find suitable location to new forest tree")
     return false,0,0,0
-end
--------------------------------------------------------------------------------
-function destroyTreeAt(forest,coords)
-
-    Debug.DrawSphere(coords.x,coords.y,coords.z, 200)
-
-    Game.Print("Destroy tree at called:" .. forest)
-    trees = WorldItems.Get(forest, "trees")
-    base_coords = WorldItems.GetCoords(forest)
-
-    Game.Print(string.format("WORLDITEM %s = %f,%f,%f", forest,base_coords.x,base_coords.y,base_coords.z))
-
-    if trees then
-        for treePos, treeString in ipairs(trees) do
-            tree = tokenizeForestPart(treeString)
-
-            distance = distance3D( {coords.x, coords.y, 0}, {tree.x + base_coords.x, tree.y + base_coords.y, 0} )
-                
-            if distance < 1100 then
-
-                Game.Print(string.format("%f,%f to %f,%f distance = %f...", coords.x,coords.y,tree.x,tree.y,distance))
-
-                -- Debug.DrawSphere(tree.x,tree.y,tree.z, 200)
-                Debug.DrawLine(coords.x,coords.y,coords.z,
-                                base_coords.x + tree.x,
-                                base_coords.y + tree.y,
-                                base_coords.z + tree.z)
-
-            --     Game.Print(string.format("Found tree at %d cm, destroying...", distance))
-            --     -- table.remove(trees, treePos)
-            --     -- WorldItems.Set(forest, "trees", trees)
-            --     -- WorldItems.DestroyMeshAt(forest,tree.x,tree.y,tree.z)
-            --     -- return true
-            end
-            
-        end
-    end
-
-    return false
 end
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("forest", Events.OnItemUse,
@@ -146,6 +125,63 @@ function(forest)
     end
 end)
 -------------------------------------------------------------------------------
+function destroyTreeAt(forest,coords)
+
+    Game.Print(string.format("Destroy tree at called at coords %f,%f", coords.x, coords.y))
+
+    trees = WorldItems.Get(forest, "trees")
+    base_coords = WorldItems.GetCoords(forest)
+
+    local tree = nil
+
+    if trees then
+
+        local tree_found = false
+
+        for treePos, treeString in ipairs(trees) do
+            tree = tokenizeForestPart(treeString)
+
+            -- Calculate the distance from the target (coords) and the tree
+
+            rotation = base_coords.rotation
+
+            rotated_tree_vector = {}
+            rotated_tree_vector.x, 
+            rotated_tree_vector.y,
+            rotated_tree_vector.z = rotateZ(tree.x,tree.y,tree.z,rotation)
+
+            tree_coords = {}
+            tree_coords.x = base_coords.x + rotated_tree_vector.x
+            tree_coords.y = base_coords.y + rotated_tree_vector.y
+            tree_coords.z = base_coords.z + rotated_tree_vector.z
+
+            distance = distance3D( 
+                {coords.x, coords.y, 0}, 
+                {tree_coords.x, tree_coords.y, 0} )
+
+            if distance < 50 then
+
+                -- Debug.DrawSphere(tree_coords.x,tree_coords.y,tree_coords.z, 200)
+                Game.Print(string.format("removing tree=%f,%f distance = %f...", 
+                    tree.x,tree.y,
+                    distance))
+                
+                tree_found = true
+                break
+            end
+        end
+
+        if tree_found and tree then
+            table.remove(trees, treePos)
+            WorldItems.Set(forest, "trees", trees)
+            WorldItems.DestroyMeshAt(forest,tree.x,tree.y,tree.z)
+            return true
+        end
+    end
+
+    return false
+end
+-------------------------------------------------------------------------------
 function OnFinishedChoppingTree(player, forest, coords)
 
     if destroyTreeAt(forest,coords) then
@@ -163,9 +199,15 @@ function(player,forest,coords)
     -------------------------------------------------------
     table.insert(options, {"Chop Tree", function(player,forest) 
 
-        Players.MoveTo(player, coords, {
+        local weapon = Players.GetEquippedWeaponClass(player)
+        
+        if weapon ~= "axe" then
+            Players.FlashMessage(player, "You must have an axe equipped.")
+            return
+        end
 
-            acceptance_radius = 50,
+        Players.MoveTo(player, coords, {
+            acceptance_radius = 100,
             on_completed = function(player)
                 
                 Players.Action(player,"chopping_tree", 1, {
@@ -219,7 +261,7 @@ function()
         end
 
         -- Spawn saplings
-        if math.random(3600) < 10 and #trees < 30 then
+        if math.random(SAPLING_CHANCE_EVERY_MINUTE * 10) < 10 and #trees < MAX_TREES then
 
             Game.Print("Attempting to spawn a new sapling")
             local valid,newX,newY,newZ = findEmptyLocationNear(forest)

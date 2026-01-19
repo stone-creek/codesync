@@ -56,16 +56,21 @@ function(player,clickedCampfire)
     options = {}
     -----------------------------------------------------
     menu_addfuel = {"Add Fuel", function(player,campfire) 
-        Game.Print("Adding fuel to:" .. campfire)
-        fuel = WorldItems.Get(campfire, "fuel")
-        WorldItems.Set(campfire, "fuel", fuel + 120)
+
+        Players.FlashMessage(player, "Use firewood near the campfire to feed it.")
+        
+        -- Game.Print("Adding fuel to:" .. campfire)
+
+        -- fuel = WorldItems.Get(campfire, "fuel")
+        -- WorldItems.Set(campfire, "fuel", fuel + 120)
+
     end }
     table.insert(options, menu_addfuel)
     -----------------------------------------------------
     menu_putout = {"Put Out", function(player,campfire) 
 
         local radius = WorldItems.GetRadius(campfire)
-        local coords = WorldItems.GetCoords(campfire)
+        local coords = worlditems.getCoords(campfire)
 
         Players.MoveTo(player, coords, {
             acceptance_radius = 50 + radius,
@@ -102,7 +107,7 @@ function(player,clickedCampfire)
                         Effects.Fire(campfire, true)
                     end,
                     on_interrupted = function(player)
-                        Player.FlashMessage(player, "Did not finish light up")
+                        Players.FlashMessage(player, "Did not finish light up")
                     end
                 } )
             end

@@ -1,0 +1,28 @@
+-----------------------------------------------------------
+WorldItems.ReactsTo("firewood", Events.OnItemUse,
+function(player,inventory_guid,class)
+
+    -- Find if there's a campfire nearby
+    coords = Players.GetCoords(player)
+    nearest_campfire = WorldItems.NearestAt(coords.x, coords.y, coords.z)
+
+    if WorldItems.ClassOf(nearest_campfire) ~= "campfire" then
+        Players.FlashMessage(player, "I can't find a campfire nearby.")
+        return
+    end
+
+    -- Look for lumber in player's inventory
+    for pos = 1, Inventory.Count(player) do
+
+        item = Inventory.At(player, pos)
+        if Inventory.ClassOf(player, item) == "firewood" then
+            
+            Inventory.RemoveFrom(player,item)
+
+            fuel = WorldItems.Get(nearest_campfire, "fuel")
+            WorldItems.Set(nearest_campfire, "fuel", fuel + 200)
+
+        end
+    end
+
+end)
