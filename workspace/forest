@@ -2,10 +2,10 @@
 -- Current implementation of forest mod (June 2025)
 -------------------------------------------------------------------------------
 
-MAX_TREES = 15
-SAPLING_CHANCE_EVERY_MINUTE = 1
+MAX_TREES = 30
+SAPLING_CHANCE_EVERY_MINUTE = 10
 
-
+-------------------------------------------------------------------------------
 function migrateTreeMesh(mesh)
     if string.sub(mesh, 1, 5) == "tree_" then
         mesh = "SM_Conifer_03"
@@ -24,6 +24,24 @@ function rotateZ(x, y, z, degrees)
     local z2 = z
 
     return x2, y2, z2
+end
+-------------------------------------------------------------------------------
+function translateWorldToRelative(x,y,z,item)
+
+    local coords = WorldItems.GetCoords(item)
+
+    newX,newY,newZ = rotateZ(
+        coords.x - x,
+        coords.y - y,
+        coords.z - z,
+        180 - coords.rotation)
+
+    return {
+        x = newX,
+        y = newY,
+        z = 0 - newZ
+    }
+
 end
 -------------------------------------------------------------------------------
 function tokenizeForestPart(str)
@@ -65,34 +83,40 @@ end
 -- Will attempt 100 times to find a suitable nearby position for a new
 -- sapling spawn. Will consider Z axis to avoid spawning things in the air.
 -- 
-function findEmptyLocationNear(forest)
+function findEmptyLocationNear(coords)
         
-    local coords = WorldItems.GetCoords(forest)
-
     for pos = 1, 100 do
+        
         local newX = coords.x + (math.random(6000) - 3000)
         local newY = coords.y + (math.random(6000) - 3000)
         local newZ = Game.GroundAt(newX, newY, coords.z)
 
-        if math.abs(newZ - coords.z) < 20 then
-            nearest = WorldItems.NearestAt(newX, newY, newZ)
-            if nearest ~= nil then
-                distance = distance3D( {coords.x, coords.y, coords.z}, {newX, newY, newZ} )
-                if distance > 300 then
-                    if pos > 1 then
-                        Game.Print("new forest tree took " .. pos .. " attempts")
-                    end
+        -- Debug.DrawSphere(newX, newY, newZ, 400)
 
-                    Game.Print(string.format("New location: /debugdot %.0f,%.0f,%.0f",
-                        newX, newY, newZ))
+        local valid = true
 
-                    return true, newX, newY, newZ
-                end
+        local nearest = WorldItems.NearestAt(newX, newY, newZ)
+        if (nearest ~= nil) then
+            local nearest_coords = WorldItems.GetCoords(nearest)
+
+            local distance = distance3D( 
+                {nearest_coords.x, nearest_coords.y, nearest_coords.z}, 
+                {newX, newY, newZ} )
+       
+            if distance < 300 then
+                valid = false
             end
+        end
+
+        if valid then
+            Game.Print("new forest sapling took " .. pos .. " attempts to be located")
+            Game.Print(string.format("New location: /debugdot %.0f,%.0f,%.0f",
+                newX, newY, newZ))
+            return true, newX, newY, newZ
         end
     end
 
-    Game.Print("Warning: could not find suitable location to new forest tree")
+    Game.Print("Warning: could not find suitable location to new forest sapling")
     return false,0,0,0
 end
 -------------------------------------------------------------------------------
@@ -264,24 +288,36 @@ function()
         if math.random(SAPLING_CHANCE_EVERY_MINUTE * 10) < 10 and #trees < MAX_TREES then
 
             Game.Print("Attempting to spawn a new sapling")
-            local valid,newX,newY,newZ = findEmptyLocationNear(forest)
+            local coords = WorldItems.GetCoords(forest)
+            local valid,newX,newY,newZ = findEmptyLocationNear(coords)
+
             if valid then
-                local coords = WorldItems.GetCoords(forest)
-                newX = newX - coords.x
-                newY = newY - coords.y
-                newZ = newZ - coords.z
+
+                local distance = distance3D( 
+                    {coords.x, coords.y, coords.z}, 
+                    {newX, newY, newZ} )
+
+                relative_coords = translateWorldToRelative(newX,newY,newZ,forest)
+
                 local newRotation = math.random(360)
                 local new_sapling = string.format(
                     "SM_Conifer_01,%.0f,%.0f,%.0f,%.0f,%d,%d",
-                    newX,
-                    newY,
-                    newZ,
+                    relative_coords.x,
+                    relative_coords.y,
+                    relative_coords.z,
                     newRotation,
                     0,
                     100)
+
                 Game.Print("new sapling:" .. new_sapling)
                 table.insert(newTreeTable,new_sapling)
-                WorldItems.AddMeshTo(forest,"SM_Conifer_01",newX,newY,newZ,newRotation)
+
+                WorldItems.AddMeshTo(
+                    forest,"SM_Conifer_01",
+                    relative_coords.x,
+                    relative_coords.y,
+                    relative_coords.z,
+                    newRotation)
             end
         end
 
@@ -289,3 +325,4 @@ function()
 
     end
 end)
+
