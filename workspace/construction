@@ -53,11 +53,8 @@ end)
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("construction", Events.OnAddMesh, 
 function(construction,player,mesh,x,y,z,rotation)
-    parts = WorldItems.Get(construction, "parts")
-    if parts == nil then
-        parts = {}
-    end
-    new_part = string.format("%s,%.1f,%.1f,%.1f,%.1f", mesh, x,y,z,rotation)
+    parts = WorldItems.Get(construction, "parts") or {}
+    new_part = string.format("%s,%.1f,%.1f,%.1f,%.1f",mesh,x,y,z,rotation)
     table.insert(parts,new_part)
     WorldItems.Set(construction,"parts",parts)
     WorldItems.AddMeshTo(construction, mesh,x,y,z,rotation) 

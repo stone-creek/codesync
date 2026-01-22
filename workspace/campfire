@@ -41,8 +41,8 @@ end)
 WorldItems.ReactsTo("campfire", Events.OnHover, 
 function(player,campfire)
 
-    fuel = WorldItems.Get(campfire, "fuel")
-    fuel_left = string.format("Fuel left:%d", fuel)
+    fuel = WorldItems.Get(campfire, "fuel") or 0
+    fuel_left = string.format("Fuel left: %d", fuel)
 
     active = WorldItems.Get(campfire, "active")
     active_status = active and "Status: active" or "Status: inactive"

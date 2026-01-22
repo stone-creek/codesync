@@ -1,4 +1,15 @@
 -------------------------------------------------------------------------------
+Events = {}
+Events['OnItemUse'] = 1
+Events['OnEverySecond'] = 2
+Events['OnEveryMinute'] = 3
+Events['OnAddMesh'] = 4
+Events['OnLoad'] = 5
+Events['OnHover'] = 6
+Events['OnUseWeapon'] = 7
+Events['OnClick'] = 8
+Events['OnRun'] = 9
+-------------------------------------------------------------------------------
 Game = {}
 Game.Print = function(message)
     -- print("GAMEPRINT:" .. message)
@@ -6,9 +17,12 @@ end
 Game.InFrontOf = function(player,x,y)
     return 1,2,3,4
 end
+Game.Menu = function(player,item,options)
+end
 -------------------------------------------------------------------------------
 Zombies = {}
-Zombies.SpawnAt = function() end
+Zombies.SpawnAt = function() 
+end
 -------------------------------------------------------------------------------
 Players = {}
 Players.Count = function()
@@ -24,6 +38,10 @@ Players.GetCoords = function(player)
         y = 2,
         z = 3
     }
+end
+Players.PopHover = function(player, object, message1, message2, message3)
+end
+Players.BuildingMode = function(player)
 end
 -------------------------------------------------------------------------------
 Inventory = {}
@@ -43,15 +61,26 @@ end
 Effects = {}
 Effects.Fire = function(item,enable) end
 -------------------------------------------------------------------------------
-Events = {}
-Events['OnItemUse'] = 1
--------------------------------------------------------------------------------
 WorldItems = {}
 WorldItems.Property = function() 
 end
+WorldItems.Count = function(class)
+    return 0
+end
 WorldItems.ReactsTo = function(object,event,callback) 
 
-    if event == Events.OnItemUse then 
+    if event == nil then
+        print("ERROR: event cant be nil, add to Events[] above.")
+        return
+    end
+
+    if event == Events.OnEverySecond then 
+        -- print("Testing OnEverySecond")
+        callback()
+    elseif event == Events.OnEveryMinute then 
+        -- print("Testing OnEveryMinute")
+        callback()
+    elseif event == Events.OnItemUse then 
         -- print("ONITEMUSE")
         callback("player","inventory","class")
     end
@@ -64,6 +93,12 @@ WorldItems.AddMeshTo = function(item,mesh,x,y,z,rotation)
     return "spawned-item-guid-0001"
 end
 WorldItems.Set = function(object,variable,table)
+end
+WorldItems.Get = function(object,variable)
+    return nil
+end
+WorldItems.At = function(class,pos)
+    return nil
 end
 WorldItems.NearestAt = function(x,y,z)
     return "nearest-item-at"
