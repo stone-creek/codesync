@@ -10,31 +10,37 @@ Will generate 4x4 meshes of appropriate growth stage
 If stage is harvest, will enable the option to retrieve the produce
 
 ]] ----------------------------------------------------------------------------
-WorldItems.Property("farmplot", "age", 0)
-WorldItems.Property("farmplot", "type", "onion")
+ local FarmplotAges = {
+    GERMINATE_END = 5,
+    GROW_END      = 30,
+    HARVEST_END   = 3000
+}
 -------------------------------------------------------------------------------
 function timeUntilNextAge(age)
-    if age < 10 then
-        return 10 - age
-    elseif age < 15 then
-        return 15 - age
-    elseif age < 20 then
-        return 20 - age
+    if age < FarmplotAges.GERMINATE_END then -- germinate
+        return FarmplotAges.GERMINATE_END - age
+    elseif age < FarmplotAges.GROW_END then -- grow
+        return FarmplotAges.GROW_END - age
+    elseif age < FarmplotAges.HARVEST_END then --  harvest, then wither
+        return FarmplotAges.HARVEST_END - age
     end
     return 0
 end
 -------------------------------------------------------------------------------
 function calculateAge(age)
-    if age < 10 then
+    if age < FarmplotAges.GERMINATE_END then
         return "germinate"
-    elseif age < 15 then
+    elseif age < FarmplotAges.GROW_END then
         return "grow"
-    elseif age < 20 then
+    elseif age < FarmplotAges.HARVEST_END then 
         return "harvest"
     end
 
     return "wither"
 end
+-------------------------------------------------------------------------------
+WorldItems.Property("farmplot", "age", 0)
+WorldItems.Property("farmplot", "type", "onion")
 -------------------------------------------------------------------------------
 function calculateMeshByAge(type, age)
     return string.format("%s_%s", type, calculateAge(age))
@@ -100,8 +106,10 @@ function(farmplot,player,mesh,x,y,z,rotation)
     -- Game.Print("AddMesh:" .. mesh)
 end)
 -------------------------------------------------------------------------------
-WorldItems.ReactsTo("farmplot", Events.OnEverySecond,
+WorldItems.ReactsTo("farmplot", Events.OnEveryMinute,
 function()
+    -- Game.Print("Everyminute called")
+
     count = WorldItems.Count("farmplot")
     for pos = 1, count do
         farmplot = WorldItems.At("farmplot", pos)
@@ -109,9 +117,7 @@ function()
         type = WorldItems.Get(farmplot, "type")
         oldMesh = calculateMeshByAge(type, age)
 
-        age = age + 1   
-        if age > 25 then age = 1 end
-
+        age = age + 1
         newMesh = calculateMeshByAge(type, age)
         if (oldMesh ~= newMesh) then
 
@@ -120,6 +126,60 @@ function()
 
         end
         WorldItems.Set(farmplot, "age", age)
-        Game.Print(string.format("New plot age:%d", age))
+        Game.Print(string.format("New plot age:%d minutes", age))
     end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("farmplot", Events.OnClick, 
+function(player,farmplot,coords)
+
+    options = {}
+    -------------------------------------------------------
+    table.insert(options, {"Harvest", function(player,farmplot) 
+
+        age = WorldItems.Get(farmplot, "age")
+        if age > FarmplotAges.HARVEST_END then
+            Players.FlashMessage(player, "The crop is dead.")
+            return
+        elseif age < FarmplotAges.GROW_END then
+            Players.FlashMessage(player, "The crop is not ready to be harvested yet.")
+            return
+        end
+
+        Players.Action(player,"campfire_lightup", 4, {
+            interruptable = true,
+            on_completed = function(player)
+
+                age = 0
+                WorldItems.Set(farmplot, "age", age)
+                despawnPlants(farmplot)
+                spawnPlants(farmplot,age)
+
+                Inventory.AddTo(player,"onion")
+
+            end,
+            on_interrupted = function(player)
+                Players.FlashMessage(player, "Could not finish harvesting.")
+            end
+        } )
+                
+
+        -- Players.MoveTo(player, coords, {
+        --     acceptance_radius = 100,
+        --     on_completed = function(player)
+                
+        --         Players.Action(player,"chopping_tree", 1, {
+        --             interruptable = true,
+        --             on_completed = function(player)
+
+        --                 OnFinishedChoppingTree(player, forest, coords)
+
+        --             end
+        --         } )
+        --     end
+        -- })
+
+    end })
+    -------------------------------------------------------
+    Game.Menu(player,farmplot,options)
 end)
