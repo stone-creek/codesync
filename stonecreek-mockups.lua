@@ -19,9 +19,20 @@ Game.InFrontOf = function(player,x,y)
 end
 Game.Menu = function(player,item,options)
 end
+Game.SubscribeTo = function(event,callback)
+    callback()
+end
 -------------------------------------------------------------------------------
 Zombies = {}
-Zombies.SpawnAt = function() 
+Zombies.Create = function() 
+end
+-------------------------------------------------------------------------------
+NPCs = {}
+NPCs.Create = function() 
+end
+-------------------------------------------------------------------------------
+Notifications = {}
+Notifications.Create = function()
 end
 -------------------------------------------------------------------------------
 Players = {}

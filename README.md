@@ -33,6 +33,16 @@ python3 upload.py --url=[url] --auth=$(auth_token)
 
 or just use './test-and-upload.sh', which will call test.py and upload.py.
 
+## New: autodetect filesystem changes
+
+* Make sure the script 'initenv.sh' has the correct settings (login name and password).
+* Use:
+```
+./monitor.sh
+```
+
+It will check for changes in the 'workspace' directory, and if any, will run test.py and - if tests pass - will upload to the server.
+
 ### Notes and references
 
 URL on production: 'https://stonecreek.pro'

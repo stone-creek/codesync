@@ -67,7 +67,7 @@ try:
             del upload_data["UpdatedAt"]
 
             print(f"Updating file: {filename}...")
-            response = requests.put(args.url + "/api/v2/items", json=upload_data, headers=headers)
+            response = requests.put(args.url + "/api/v2/item", json=upload_data, headers=headers)
             print(f"File {filename} successfully updated.")
             response.raise_for_status()
         

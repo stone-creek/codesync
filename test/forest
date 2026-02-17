@@ -31,12 +31,6 @@ test.distance3D = function()
     test.assert(distance == math.sqrt(200))
 end
 -------------------------------------------------------------------------------
-test.testMigrate = function()
-    test.assert(migrateTreeMesh("tree_01") == "SM_Conifer_03")
-    test.assert(migrateTreeMesh("something_else_1234") == "something_else_1234")
-    test.assert(migrateTreeMesh("SM_Conifer_03") == "SM_Conifer_03")
-end
--------------------------------------------------------------------------------
 -- function findEmptyLocationNear(forest)
 -------------------------------------------------------------------------------
 

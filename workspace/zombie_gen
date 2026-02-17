@@ -9,7 +9,7 @@ function(player,inventory_guid,class)
 
     for i = 0, 3 do
 
-        Zombies.SpawnAt(
+        Zombies.Create(
             x + math.random(800) - 400,
             y + math.random(800) - 400,
             z,rotate)

@@ -6,13 +6,6 @@ MAX_TREES = 30
 SAPLING_CHANCE_EVERY_MINUTE = 10
 
 -------------------------------------------------------------------------------
-function migrateTreeMesh(mesh)
-    if string.sub(mesh, 1, 5) == "tree_" then
-        mesh = "SM_Conifer_03"
-    end
-    return mesh
-end
--------------------------------------------------------------------------------
 -- Rotate a vector around its z axis
 function rotateZ(x, y, z, degrees)
     local rad = math.rad(degrees)
@@ -50,7 +43,7 @@ function tokenizeForestPart(str)
         table.insert(tokens, token:match("^%s*(.-)%s*$")) -- trim whitespace
     end
     return {
-        mesh = migrateTreeMesh(tokens[1]),
+        mesh = tokens[1],
         x = tonumber(tokens[2]) or 0,
         y = tonumber(tokens[3]) or 0,
         z = tonumber(tokens[4]) or 0,
@@ -236,6 +229,7 @@ function(player,forest,coords)
                 
                 Players.Action(player,"chopping_tree", 1, {
                     interruptable = true,
+                    progress_message = "Working...",
                     on_completed = function(player)
 
                         OnFinishedChoppingTree(player, forest, coords)

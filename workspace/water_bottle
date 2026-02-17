@@ -1,0 +1,26 @@
+
+
+
+
+
+
+
+
+local near_well = { -13470, -14250, 2551 } -- FindNearestWell(Game.StartCoords)
+
+local NPC_near_well = NPCs.Create({
+        location = near_well,
+        rotation = 0,
+        name = "Daniel",
+        model = "mesh_model_x",
+        gear = {"basic_clothes", "backpack"}
+    }
+)
+
+
+
+
+
+Game.SubscribeTo(Events.OnPlayerOnline, function(player)
+    Notifications.Create(player,{message="Go to the nearest well and grab water"})
+end)

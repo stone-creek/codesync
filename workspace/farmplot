@@ -10,33 +10,35 @@ Will generate 4x4 meshes of appropriate growth stage
 If stage is harvest, will enable the option to retrieve the produce
 
 ]] ----------------------------------------------------------------------------
- local FarmplotAges = {
+local FarmplotAges = {
     GERMINATE_END = 5,
     GROW_END      = 30,
     HARVEST_END   = 3000
 }
 -------------------------------------------------------------------------------
-function timeUntilNextAge(age)
-    if age < FarmplotAges.GERMINATE_END then -- germinate
-        return FarmplotAges.GERMINATE_END - age
-    elseif age < FarmplotAges.GROW_END then -- grow
-        return FarmplotAges.GROW_END - age
-    elseif age < FarmplotAges.HARVEST_END then --  harvest, then wither
-        return FarmplotAges.HARVEST_END - age
+local function timeUntilNextAge(age)
+
+    local ends = { 
+        FarmplotAges.GERMINATE_END, 
+        FarmplotAges.GROW_END, 
+        FarmplotAges.HARVEST_END 
+    }
+    
+    for _, end_age in ipairs(ends) do
+        if age < end_age then
+            return end_age - age
+        end
     end
     return 0
 end
 -------------------------------------------------------------------------------
-function calculateAge(age)
-    if age < FarmplotAges.GERMINATE_END then
-        return "germinate"
-    elseif age < FarmplotAges.GROW_END then
-        return "grow"
-    elseif age < FarmplotAges.HARVEST_END then 
-        return "harvest"
-    end
+local function calculateAge(age)
 
+    if age < FarmplotAges.GERMINATE_END then return "germinate" end
+    if age < FarmplotAges.GROW_END      then return "grow"      end
+    if age < FarmplotAges.HARVEST_END   then return "harvest"   end
     return "wither"
+
 end
 -------------------------------------------------------------------------------
 WorldItems.Property("farmplot", "age", 0)
@@ -62,11 +64,11 @@ function(player,farmplot)
 end)
 -----------------------------------------------------------
 function spawnPlants(farmplot,age)
-    mesh = calculateMeshByAge(type, age)
+    local mesh = calculateMeshByAge(type, age)
     for x = 0, 4 do
         for y = 0, 4 do
-            posX = x * 43 - 90
-            posY = y * 43 - 90
+            local posX = x * 43 - 90
+            local posY = y * 43 - 90
             -- Game.Print(string.format("Mesh %s at %.1f,%.1f", mesh, posX, posY))
             WorldItems.AddMeshTo(farmplot, mesh, posX, posY, 0, 0)
         end
@@ -76,8 +78,8 @@ end
 function despawnPlants(farmplot)
     for x = 0, 4 do
         for y = 0, 4 do
-            posX = x * 43 - 90
-            posY = y * 43 - 90
+            local posX = x * 43 - 90
+            local posY = y * 43 - 90
             WorldItems.DestroyMeshAt(farmplot, posX, posY, 0)
         end
     end
@@ -126,7 +128,7 @@ function()
 
         end
         WorldItems.Set(farmplot, "age", age)
-        Game.Print(string.format("New plot age:%d minutes", age))
+        -- Game.Print(string.format("New plot age:%d minutes", age))
     end
 end)
 -------------------------------------------------------------------------------
@@ -148,6 +150,7 @@ function(player,farmplot,coords)
 
         Players.Action(player,"campfire_lightup", 4, {
             interruptable = true,
+            progress_message = "Harvesting...",
             on_completed = function(player)
 
                 age = 0
