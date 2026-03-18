@@ -14,6 +14,8 @@ WorldItems.ReactsTo("campfire", Events.OnEverySecond, function()
             if fuel == 0 then
                 WorldItems.Set(itemCampfire, "active", false)
                 Effects.Fire(itemCampfire, false)
+
+                Events.Broadcast("campfire", "extinguished", itemCampfire)
             end
         end
     end
@@ -99,7 +101,6 @@ function(player,clickedCampfire)
             acceptance_radius = 50 + radius,
             on_completed = function(player)
 
-                Game.Print("on completed light up campfire")
                 Players.Action(player,"campfire_lightup", 4, {
                     interruptable = true,
                     progress_message = "Lighting up campfire",
@@ -113,6 +114,7 @@ function(player,clickedCampfire)
                 } )
             end
         })
+
     end }
     table.insert(options, menu_lightup)
     -----------------------------------------------------

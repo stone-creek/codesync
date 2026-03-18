@@ -2,8 +2,8 @@
 -- Current implementation of forest mod (June 2025)
 -------------------------------------------------------------------------------
 
-MAX_TREES = 30
-SAPLING_CHANCE_EVERY_MINUTE = 10
+MAX_TREES = 15 
+SAPLING_CHANCE_EVERY_MINUTE = 20
 
 -------------------------------------------------------------------------------
 -- Rotate a vector around its z axis
@@ -57,13 +57,19 @@ function calculateTreeMeshByAge(mesh,age)
 
     local number = tonumber(mesh:match("^SM_Conifer_(%d+)$"))
 
-    if math.floor(age / 8000) > number then
-        number = number + 1
+    -- Game.Print("mesh:" .. mesh)
+    if number ~= nil then
+
+        if math.floor(age / 8000) > number then
+            number = number + 1
+        end
+
+        if number > 3 then number = 3 end
+
+        return string.format("SM_Conifer_%02d", number)
     end
 
-    if number > 3 then number = 3 end
-
-    return string.format("SM_Conifer_%02d", number)
+    return "SM_Conifer_01"
 end
 -------------------------------------------------------------------------------
 function distance3D(v1, v2)
@@ -144,10 +150,15 @@ end)
 -------------------------------------------------------------------------------
 function destroyTreeAt(forest,coords)
 
-    Game.Print(string.format("Destroy tree at called at coords %f,%f", coords.x, coords.y))
+    local adjusted_coords = WorldItems.GetClosestMeshCoords(coords)
+    Game.Print(
+        string.format(
+            "Destroy tree at called at adjusted coords %.1f,%.1f (original coords %.1f,%.1f)", 
+            adjusted_coords.x, adjusted_coords.y,
+            coords.x, coords.y))
 
-    trees = WorldItems.Get(forest, "trees")
-    base_coords = WorldItems.GetCoords(forest)
+    local trees = WorldItems.Get(forest, "trees")
+    local base_coords = WorldItems.GetCoords(forest)
 
     local tree = nil
 
@@ -158,37 +169,26 @@ function destroyTreeAt(forest,coords)
         for treePos, treeString in ipairs(trees) do
             tree = tokenizeForestPart(treeString)
 
-            -- Calculate the distance from the target (coords) and the tree
-
-            rotation = base_coords.rotation
-
-            rotated_tree_vector = {}
-            rotated_tree_vector.x, 
-            rotated_tree_vector.y,
-            rotated_tree_vector.z = rotateZ(tree.x,tree.y,tree.z,rotation)
-
-            tree_coords = {}
-            tree_coords.x = base_coords.x + rotated_tree_vector.x
-            tree_coords.y = base_coords.y + rotated_tree_vector.y
-            tree_coords.z = base_coords.z + rotated_tree_vector.z
-
+            -- Calculate the distance from the target (coords) and the tree 
             distance = distance3D( 
-                {coords.x, coords.y, 0}, 
-                {tree_coords.x, tree_coords.y, 0} )
+                {adjusted_coords.x, adjusted_coords.y, 0}, 
+                {tree.x, tree.y, 0} )
 
             if distance < 50 then
 
                 -- Debug.DrawSphere(tree_coords.x,tree_coords.y,tree_coords.z, 200)
-                Game.Print(string.format("removing tree=%f,%f distance = %f...", 
-                    tree.x,tree.y,
-                    distance))
+                -- Game.Print(string.format("######## SUCCESS removing tree=%f,%f distance = %f...", 
+                --     tree.x,tree.y,
+                --     distance))
                 
                 tree_found = true
                 break
             end
         end
 
+
         if tree_found and tree then
+            -- Game.Print("######## TREE FOUND")
             table.remove(trees, treePos)
             WorldItems.Set(forest, "trees", trees)
             WorldItems.DestroyMeshAt(forest,tree.x,tree.y,tree.z)
@@ -196,13 +196,22 @@ function destroyTreeAt(forest,coords)
         end
     end
 
+    -- Game.Print("######## tree not found")
     return false
 end
 -------------------------------------------------------------------------------
 function OnFinishedChoppingTree(player, forest, coords)
 
     if destroyTreeAt(forest,coords) then
+       
         Inventory.AddTo(player,"lumber")
+        Events.Broadcast("forest", "tree.chopped", coords)
+
+        -- maybe a branch?
+        if math.random(10) > 6 then
+            Inventory.AddTo(player,"branch")
+        end
+
     else
         Players.FlashMessage(player, "No lumber was obtained.")
     end
@@ -219,7 +228,7 @@ function(player,forest,coords)
         local weapon = Players.GetEquippedWeaponClass(player)
         
         if weapon ~= "axe" then
-            Players.FlashMessage(player, "You must have an axe equipped.")
+            Players.FlashMessage(player, "You must have an AXE equipped.")
             return
         end
 
@@ -227,9 +236,9 @@ function(player,forest,coords)
             acceptance_radius = 100,
             on_completed = function(player)
                 
-                Players.Action(player,"chopping_tree", 1, {
+                Players.Action(player,"chopping_tree", 3, {
                     interruptable = true,
-                    progress_message = "Working...",
+                    progress_message = "Chopping tree...",
                     on_completed = function(player)
 
                         OnFinishedChoppingTree(player, forest, coords)
@@ -279,7 +288,7 @@ function()
         end
 
         -- Spawn saplings
-        if math.random(SAPLING_CHANCE_EVERY_MINUTE * 10) < 10 and #trees < MAX_TREES then
+        if math.random(100) < SAPLING_CHANCE_EVERY_MINUTE and #trees < MAX_TREES then
 
             Game.Print("Attempting to spawn a new sapling")
             local coords = WorldItems.GetCoords(forest)
@@ -319,4 +328,3 @@ function()
 
     end
 end)
-

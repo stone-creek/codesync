@@ -148,39 +148,29 @@ function(player,farmplot,coords)
             return
         end
 
-        Players.Action(player,"campfire_lightup", 4, {
-            interruptable = true,
-            progress_message = "Harvesting...",
+        Players.MoveTo(player, coords, {
+            acceptance_radius = 100,
             on_completed = function(player)
 
-                age = 0
-                WorldItems.Set(farmplot, "age", age)
-                despawnPlants(farmplot)
-                spawnPlants(farmplot,age)
+                Players.Action(player,"campfire_lightup", 4, {
+                    interruptable = true,
+                    progress_message = "Harvesting...",
+                    on_completed = function(player)
 
-                Inventory.AddTo(player,"onion")
+                        age = 0
+                        WorldItems.Set(farmplot, "age", age)
+                        despawnPlants(farmplot)
+                        spawnPlants(farmplot,age)
 
-            end,
-            on_interrupted = function(player)
-                Players.FlashMessage(player, "Could not finish harvesting.")
-            end
-        } )
+                        Inventory.AddTo(player,"onion")
+
+                    end,
+                    on_interrupted = function(player)
+                        Players.FlashMessage(player, "Could not finish harvesting.")
+                    end
+                } )
+            end })
                 
-
-        -- Players.MoveTo(player, coords, {
-        --     acceptance_radius = 100,
-        --     on_completed = function(player)
-                
-        --         Players.Action(player,"chopping_tree", 1, {
-        --             interruptable = true,
-        --             on_completed = function(player)
-
-        --                 OnFinishedChoppingTree(player, forest, coords)
-
-        --             end
-        --         } )
-        --     end
-        -- })
 
     end })
     -------------------------------------------------------

@@ -1,35 +1,70 @@
 -------------------------------------------------------------------------------
 -- Current implementation of bow mod (November 2025)
 -------------------------------------------------------------------------------
-WorldItems.ReactsTo("bow", Events.OnItemUse,
-function(player,inventory_guid,class)
-    
-    local weapon_info = {}
-    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
-   
-    -- if !is_equipped then
-    
-        weapon_info = {
-            mesh = "bow",
-            class = "bow",
-            offset = {0,0,0},
-            rotator = {0,0,0},
-            scale = 0.5,
-            socket = "LeftHandSocket"
-            -- type = "ranged_1h",
-        }
-    -- end
+Bow = {}
+-------------------------------------------------------------------------------
+function EquipBow(player)
+        
+    -- TODO check if theres a bow in the player inventory
+
+    local weapon_info = {
+        mesh = "bow",
+        class = "bow",
+        offset = {0,0,0},
+        rotator = {0,0,0},
+        scale = 0.5,
+        socket = "LeftHandSocket",
+        ammo = "arrow",
+        on_hit = function(target)
+            Bow.OnHitTarget(target)
+        end
+        -- type = "ranged_1h",
+    }
 
     Players.EquipWeapon(player, weapon_info)
+    Players.SetMetadata(player, "equipped", "bow")
+
+end
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("bow", Events.OnItemUse,
+function(player,inventory_guid,class)
+   
+    local weapon = Players.GetEquippedWeaponClass(player)
+    
+    if weapon == "bow" then
+        Players.EquipWeapon(player, nil)
+        Players.SetMetadata(player, "equipped", nil)
+        return
+    end
+
+    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
+    -- if !is_equipped then
+        EquipBow(player)
+    -- end
 
     -- Inventory.SetEquippedDot(inventory_guid, false)
 end)
 -------------------------------------------------------------------------------
 -- Players.ReactsTo("bow", Events.OnUseWeapon,
 -- function(player,weapon_data)
-
---     -- Swing animation
---     -- If hit, takes 40 health
---     -- Uses 2 energy
-
 -- end)
+-------------------------------------------------------------------------------
+Bow.OnHitTarget = function(target)
+end
+-------------------------------------------------------------------------------
+Game.SubscribeTo(Events.OnPlayerOnline, function(player)
+
+    
+    if player ~= nil then
+        Game.Print("Retrieving metadata for player=" .. player)
+        local metadata = Players.GetMetadata(player, "equipped")
+            
+        EquipBow(player)
+        -- Notifications.Create(player,{message=string.format("Name:%s Equip:%s", player, metadata)})
+
+        -- if equipped == "bow" then
+        -- end
+
+    end
+end)
+-------------------------------------------------------------------------------

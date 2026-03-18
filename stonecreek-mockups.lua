@@ -20,7 +20,7 @@ end
 Game.Menu = function(player,item,options)
 end
 Game.SubscribeTo = function(event,callback)
-    callback()
+    -- callback()
 end
 -------------------------------------------------------------------------------
 Zombies = {}
@@ -41,6 +41,8 @@ Players.Count = function()
 end
 Players.EquipWeapon = function(player, weapon_info)
 end
+Players.GetEquippedWeaponClass = function(player)
+end
 Players.FlashMessage = function(player, message)
 end
 Players.GetCoords = function(player)
@@ -53,6 +55,11 @@ end
 Players.PopHover = function(player, object, message1, message2, message3)
 end
 Players.BuildingMode = function(player)
+end
+Players.SetMetadata = function(player,key,value)
+end
+Players.GetMetadata = function(player,key)
+    return "value"
 end
 -------------------------------------------------------------------------------
 Inventory = {}
@@ -116,5 +123,8 @@ WorldItems.NearestAt = function(x,y,z)
 end
 WorldItems.ClassOf = function(object)
     return "class-of-item"
+end
+WorldItems.GetClosestMeshCoords = function(coords)
+    return {1,2,3}
 end
 -------------------------------------------------------------------------------

@@ -4,7 +4,7 @@ source initenv.sh
 
 WATCH_DIR="workspace"
 COMMAND1="python3 test.py"
-COMMAND2="python3 upload.py --url=http://192.168.50.70:8088 --auth=$auth_token"
+COMMAND2="python3 upload.py --url=http://127.0.0.1:8088 --auth=$auth_token"
 INTERVAL=1  # Check every 2 seconds
 
 get_snapshot() {

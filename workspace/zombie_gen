@@ -12,7 +12,9 @@ function(player,inventory_guid,class)
         Zombies.Create(
             x + math.random(800) - 400,
             y + math.random(800) - 400,
-            z,rotate)
+            z,rotate,
+            true,
+            false)
 
     end
 
