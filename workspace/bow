@@ -26,23 +26,39 @@ function EquipBow(player)
 
 end
 -------------------------------------------------------------------------------
+function UnequipAll(player)
+
+    Players.EquipWeapon(player, nil)
+    Players.SetMetadata(player, "equipped", nil)
+
+    -- Remove all dots
+    for pos = 1, Inventory.Count(player) do
+        local inventory = Inventory.At(player, pos)
+        if Inventory.GetDot(player, inventory) then
+            Inventory.SetDot(player, inventory, false)
+        end
+    end
+
+end
+-------------------------------------------------------------------------------
 WorldItems.ReactsTo("bow", Events.OnItemUse,
 function(player,inventory_guid,class)
    
-    local weapon = Players.GetEquippedWeaponClass(player)
-    
-    if weapon == "bow" then
-        Players.EquipWeapon(player, nil)
-        Players.SetMetadata(player, "equipped", nil)
+    -- Possibilities: 
+    --     equipping this one: unequip all
+    --     equipping another: unequip, equip this
+    --     not equipping: equip this
+
+    -- equipping this one
+    if Inventory.GetDot(player, inventory_guid) then
+        UnequipAll(player)
         return
     end
 
-    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
-    -- if !is_equipped then
-        EquipBow(player)
-    -- end
+    UnequipAll(player)
+    EquipBow(player)
+    Inventory.SetDot(player, inventory_guid, true)
 
-    -- Inventory.SetEquippedDot(inventory_guid, false)
 end)
 -------------------------------------------------------------------------------
 -- Players.ReactsTo("bow", Events.OnUseWeapon,

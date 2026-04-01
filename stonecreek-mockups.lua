@@ -9,6 +9,10 @@ Events['OnHover'] = 6
 Events['OnUseWeapon'] = 7
 Events['OnClick'] = 8
 Events['OnRun'] = 9
+Events['OnZombieHit'] = 10
+Events['OnPlayerDied'] = 11
+Events['OnPlayerAttack'] = 12
+
 -------------------------------------------------------------------------------
 Game = {}
 Game.Print = function(message)
@@ -74,6 +78,11 @@ Inventory.At = function(player,pos)
 end
 Inventory.ClassOf = function(player,item)
     return "random item class" 
+end
+Inventory.GetDot = function(player,inventory)
+    return false
+end
+Inventory.SetDot = function(player,inventory,enable)
 end
 -------------------------------------------------------------------------------
 Effects = {}

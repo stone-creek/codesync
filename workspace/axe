@@ -1,34 +1,45 @@
 -------------------------------------------------------------------------------
 -- Current implementation of axe mod (November 2025)
 -------------------------------------------------------------------------------
+function UnequipAll(player)
+
+    Players.EquipWeapon(player, nil)
+    Players.SetMetadata(player, "equipped", nil)
+
+    -- Remove all dots
+    for pos = 1, Inventory.Count(player) do
+        local inventory = Inventory.At(player, pos)
+        if Inventory.GetDot(player, inventory) then
+            Inventory.SetDot(player, inventory, false)
+        end
+    end
+
+end
+-------------------------------------------------------------------------------
 WorldItems.ReactsTo("axe", Events.OnItemUse,
 function(player,inventory_guid,class)
     
-    local weapon_info = {}
-    -- local is_equipped = Inventory.GetEquippedDot(inventory_guid) 
-   
-    -- if !is_equipped then
-    
-        weapon_info = {
-            mesh = "axe",
-            class = "axe",
-            offset = {0,0,-140},
-            rotator = {0,90,0},
-            scale = 1
-            -- type = "melee_2h",
-        }
-    -- end
+    -- Possibilities: 
+    --     equipping this one: unequip all
+    --     equipping another: unequip, equip this
+    --     not equipping: equip this
+
+    -- equipping this one
+    if Inventory.GetDot(player, inventory_guid) then
+        UnequipAll(player)
+        return
+    end
+
+    UnequipAll(player)
+
+    local weapon_info = {
+        mesh = "axe",
+        class = "axe",
+        offset = {0,0,-140},
+        rotator = {0,90,0},
+        scale = 1
+    }
 
     Players.EquipWeapon(player, weapon_info)
-
-    -- Inventory.SetEquippedDot(inventory_guid, false)
+    Inventory.SetDot(player, inventory_guid, true)
 end)
--------------------------------------------------------------------------------
--- Players.ReactsTo("axe", Events.OnUseWeapon,
--- function(player,weapon_data)
-
---     -- Swing animation
---     -- If hit, takes 40 health
---     -- Uses 2 energy
-
--- end)
