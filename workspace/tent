@@ -30,7 +30,7 @@ function(player,tent)
                     
                     Game.Print("Sleep: movement to tent completed")
 
-                    Players.Action(player,"sleep", 10, {
+                    Players.Action(player,"sleep", 5, {
                         interruptable = true,
                         allow_aggro = false,
                         dark_screen = true,

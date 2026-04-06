@@ -1,7 +1,7 @@
-ZOMBIES_MULTIPLIER = 3
+ZOMBIES_MULTIPLIER = 2
 MAX_NPCs = 30
-SPRINTER_PERCENT_CHANCE = 20
-NEW_NPC_MIN_INTERVAL_SECONDS = 5
+SPRINTER_PERCENT_CHANCE = 5
+NEW_NPC_MIN_INTERVAL_SECONDS = 1
 
 --=========================================================
 -- Debouncer
@@ -158,9 +158,9 @@ Game.SubscribeTo(Events.OnEverySecond, function()
     if debouncer_npcs:call() then return end
 
     local spawn_location = {
-        x = -9250 + math.random(1200),
-        y = -15300 + math.random(1200),
-        z = 2641
+        x = -11060 + math.random(1200),
+        y = -16080 + math.random(1200),
+        z = 2640
     } 
 
     spawn_location.z = Game.GroundAt(
@@ -297,9 +297,9 @@ Events.SubscribeTo("every.second", function()
 
         table.insert(leaderboard_messages, str)
     end
+
     
     for _, v in ipairs(leaderboard_messages) do
         Game.Print(v)
     end
-
 end)
