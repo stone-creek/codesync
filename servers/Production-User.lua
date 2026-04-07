@@ -3,6 +3,7 @@ MAX_NPCs = 30
 SPRINTER_PERCENT_CHANCE = 5
 NEW_NPC_MIN_INTERVAL_SECONDS = 5
 
+
 --=========================================================
 -- Debouncer
 

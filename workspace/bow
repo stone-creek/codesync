@@ -3,6 +3,19 @@
 -------------------------------------------------------------------------------
 Bow = {}
 -------------------------------------------------------------------------------
+function FindInventoryItem(player, item)
+
+    for pos = 1, Inventory.Count(player) do 
+        local inventory = Inventory.At(player, pos)
+        if Inventory.ClassOf(player, inventory) == item then
+            return inventory
+        end
+    end
+
+    return nil
+
+end
+-------------------------------------------------------------------------------
 function EquipBow(player)
         
     -- TODO check if theres a bow in the player inventory
@@ -70,17 +83,20 @@ end
 -------------------------------------------------------------------------------
 Game.SubscribeTo(Events.OnPlayerOnline, function(player)
 
-    
-    if player ~= nil then
-        Game.Print("Retrieving metadata for player=" .. player)
-        local metadata = Players.GetMetadata(player, "equipped")
-            
-        EquipBow(player)
-        -- Notifications.Create(player,{message=string.format("Name:%s Equip:%s", player, metadata)})
+    local metadata = Players.GetMetadata(player, "equipped")
+        
+    if metadata == "bow" then
 
-        -- if equipped == "bow" then
-        -- end
+        inventory_guid = FindInventoryItem(player, "bow") 
+        if inventory_guid then
+            EquipBow(player)
+            Inventory.SetDot(player, inventory_guid, true)
+        else
+            Game.Print("Error: could not find equipped bow in inventory")
+            Players.SetMetadata(player, "equipped", nil)
+        end
 
     end
+
 end)
 -------------------------------------------------------------------------------

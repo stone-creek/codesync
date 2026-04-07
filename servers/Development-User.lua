@@ -1,6 +1,6 @@
 ZOMBIES_MULTIPLIER = 2
 MAX_NPCs = 30
-SPRINTER_PERCENT_CHANCE = 5
+SPRINTER_PERCENT_CHANCE = 4
 NEW_NPC_MIN_INTERVAL_SECONDS = 1
 
 --=========================================================
@@ -260,8 +260,8 @@ Events.SubscribeTo("every.second", function()
     leaderboard_messages = {}
 
     table.insert(leaderboard_messages, "[CLS leaderboard]")
-    table.insert(leaderboard_messages, "[leaderboard]Player       Kills Deaths Shots Hits    K/A   D/K   Acc Score")
-    table.insert(leaderboard_messages, "[leaderboard]----------------------------------------------------------------")
+    table.insert(leaderboard_messages, "[leaderboard]Player       Kills Deaths Shots  Hits   K/A   D/K   Acc  Score")
+    table.insert(leaderboard_messages, "[leaderboard]---------------------------------------------------------------")
 
     -- Sort the table
     table.sort(Leaderboards, function(l,r)
@@ -298,8 +298,9 @@ Events.SubscribeTo("every.second", function()
         table.insert(leaderboard_messages, str)
     end
 
-    
     for _, v in ipairs(leaderboard_messages) do
         Game.Print(v)
     end
+
 end)
+

@@ -1,6 +1,19 @@
 -------------------------------------------------------------------------------
 -- Current implementation of axe mod (November 2025)
 -------------------------------------------------------------------------------
+function FindInventoryItem(player, item)
+
+    for pos = 1, Inventory.Count(player) do 
+        local inventory = Inventory.At(player, pos)
+        if Inventory.ClassOf(player, inventory) == item then
+            return inventory
+        end
+    end
+
+    return nil
+
+end
+-------------------------------------------------------------------------------
 function UnequipAll(player)
 
     Players.EquipWeapon(player, nil)
@@ -13,6 +26,21 @@ function UnequipAll(player)
             Inventory.SetDot(player, inventory, false)
         end
     end
+
+end
+-------------------------------------------------------------------------------
+function EquipAxe(player)
+
+    local weapon_info = {
+        mesh = "axe",
+        class = "axe",
+        offset = {0,0,-140},
+        rotator = {0,90,0},
+        scale = 1
+    }
+
+    Players.EquipWeapon(player, weapon_info)
+    Players.SetMetadata(player, "equipped", "axe")
 
 end
 -------------------------------------------------------------------------------
@@ -32,14 +60,32 @@ function(player,inventory_guid,class)
 
     UnequipAll(player)
 
-    local weapon_info = {
-        mesh = "axe",
-        class = "axe",
-        offset = {0,0,-140},
-        rotator = {0,90,0},
-        scale = 1
-    }
+    EquipAxe(player)
 
-    Players.EquipWeapon(player, weapon_info)
     Inventory.SetDot(player, inventory_guid, true)
+end)
+
+-------------------------------------------------------------------------------
+Game.SubscribeTo(Events.OnPlayerOnline, function(player)
+
+    Game.Print("Retrieving metadata for player=" .. player)
+    local metadata = Players.GetMetadata(player, "equipped")
+
+    if metadata ~= nil then
+        Game.Print("metadata:" .. metadata)
+    end
+        
+    if metadata == "axe" then
+
+        inventory_guid = FindInventoryItem(player, "axe") 
+        if inventory_guid then
+            EquipAxe(player)
+            Inventory.SetDot(player, inventory_guid, true)
+        else
+            Game.Print("Error: could not find equipped axe in inventory")
+            Players.SetMetadata(player, "equipped", nil)
+        end
+
+    end
+
 end)
