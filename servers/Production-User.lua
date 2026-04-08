@@ -1,8 +1,14 @@
-ZOMBIES_MULTIPLIER = 2
-MAX_NPCs = 30
-SPRINTER_PERCENT_CHANCE = 5
+-- Commons
+
+ZOMBIES_MULTIPLIER           = 1
+MAX_NPCs                     = 10
+SPRINTER_PERCENT_CHANCE      = 4
 NEW_NPC_MIN_INTERVAL_SECONDS = 5
 
+--=========================================================
+-- Utils
+
+Util = {}
 
 --=========================================================
 -- Debouncer
@@ -25,115 +31,8 @@ function Debouncer:call()
 end
 
 --=========================================================
--- Monitor players, zombies, NPCs
-
-Game.SubscribeTo(Events.OnEverySecond, function()
-
-    local npc_count = NPCs.Count()
-    local player_count = Players.Count()
-    local zombie_count = Zombies.Count()
-    local total_count = npc_count + player_count 
-
-    -- Game.Print("[CLS totals]")
-    -- Game.Print("[CLS clock]")
-    -- Game.Print(string.format("[totals]Players:%d NPCs:%d zombies: %d", 
-    --     player_count,
-    --     npc_count,
-    --     zombie_count))
-
-    -- local daytime = Game.GetDayTime()
-    -- if daytime > 2 and daytime < 22 then
-    --     Game.Print(string.format("[clock]Countdown to sunset: %.1f ", 23 - daytime))
-    -- end
-
-end)
-
-
---=========================================================
--- Respawn zombies
-
-Game.SubscribeTo(Events.OnEverySecond, function()
-
-    local npc_count = NPCs.Count()
-    local player_count = Players.Count()
-    local zombie_count = Zombies.Count()
-
-    local max_zombies = (player_count + npc_count) * ZOMBIES_MULTIPLIER
-
-    local spawn_location = {
-        x = -4930 + math.random(400),
-        y = -16770 + math.random(400),
-        z = 2601
-    } 
-
-    spawn_location.z = Game.GroundAt(
-        spawn_location.x,
-        spawn_location.y,
-        spawn_location.z)
-
-    local aggressive = true
-    local sprinter = math.random(100) < SPRINTER_PERCENT_CHANCE 
-    
-    if zombie_count >= max_zombies then return end
-
-
-    Zombies.Create(spawn_location.x,
-        spawn_location.y,
-        spawn_location.z,
-        math.random(360),
-        aggressive,
-        sprinter)
-
-end)
-
---=========================================================
--- Replenish arrows, bow, axe
-
-local debouncer_replenish = Debouncer.new(5)
-Game.SubscribeTo(Events.OnEverySecond, function()
-
-    if debouncer_replenish:call() then return end
-
-    for pos_player = 1, Players.Count() do 
-
-        local player = Players.At(pos_player)
-
-        Players.SetAttribute(player, "hunger", 100)
-        Players.SetAttribute(player, "thirst", 100)
-        
-        local energy = Players.GetAttribute(player, "energy")
-        if energy > 10 then
-            energy = energy - 1
-            Players.SetAttribute(player, "energy", energy)
-        end
-
-        -- Game.Print("[CLS energy]")
-        -- Game.Print(
-        --     string.format("[energy] Player %s energy: %.0f",
-        --         Players.GetName(player),
-        --         energy))
-
-        if not Util.InventoryFind(player, "arrow-wood") then
-            Inventory.AddTo(player, "arrow-wood", 40)
-            Players.FlashMessage(player, "You got 40 arrows")
-        end
-
-        if not Util.InventoryFind(player, "bow") then
-            Inventory.AddTo(player, "bow")
-        end
-
-        if not Util.InventoryFind(player, "axe") then
-            Inventory.AddTo(player, "axe")
-        end
-
-    end
-
-end)
-
---=========================================================
 -- Util: does player have any inside his inventory?
 
-Util = {}
 Util.InventoryFind = function(player, item_class)
     
     for pos = 1, Inventory.Count(player) do
@@ -149,34 +48,6 @@ Util.InventoryFind = function(player, item_class)
     return false
 end
 
-
---=========================================================
--- Respawn NPCs
-
-local debouncer_npcs = Debouncer.new(NEW_NPC_MIN_INTERVAL_SECONDS)
-Game.SubscribeTo(Events.OnEverySecond, function()
-
-    if debouncer_npcs:call() then return end
-
-    local spawn_location = {
-        x = -11060 + math.random(1200),
-        y = -16080 + math.random(1200),
-        z = 2640
-    } 
-
-    spawn_location.z = Game.GroundAt(
-        spawn_location.x,
-        spawn_location.y,
-        spawn_location.z)
-
-    if NPCs.Count() > MAX_NPCs then return end
-
-    NPCs.Create(spawn_location.x,
-        spawn_location.y,
-        spawn_location.z,
-        math.random(360))
-
-end)
 
 --=========================================================
 -- Leaderboard
@@ -261,8 +132,8 @@ Events.SubscribeTo("every.second", function()
     leaderboard_messages = {}
 
     table.insert(leaderboard_messages, "[CLS leaderboard]")
-    table.insert(leaderboard_messages, "[leaderboard]Player       Kills Deaths Shots Hits    K/A   D/K   Acc Score")
-    table.insert(leaderboard_messages, "[leaderboard]----------------------------------------------------------------")
+    table.insert(leaderboard_messages, "[leaderboard]Player       Kills Deaths Shots  Hits   K/A   D/K   Acc  Score")
+    table.insert(leaderboard_messages, "[leaderboard]---------------------------------------------------------------")
 
     -- Sort the table
     table.sort(Leaderboards, function(l,r)
@@ -299,8 +170,120 @@ Events.SubscribeTo("every.second", function()
         table.insert(leaderboard_messages, str)
     end
 
-    
     for _, v in ipairs(leaderboard_messages) do
         Game.Print(v)
     end
+
+end)
+
+--=========================================================
+-- Replenish arrows, bow, axe
+
+local debouncer_replenish = Debouncer.new(5)
+Game.SubscribeTo(Events.OnEverySecond, function()
+
+    if debouncer_replenish:call() then return end
+
+    for pos_player = 1, Players.Count() do 
+
+        local player = Players.At(pos_player)
+
+        Players.SetAttribute(player, "hunger", 100)
+        Players.SetAttribute(player, "thirst", 100)
+        
+        local energy = Players.GetAttribute(player, "energy")
+        if energy > 10 then
+            energy = energy - 1
+            Players.SetAttribute(player, "energy", energy)
+        end
+
+        -- Game.Print("[CLS energy]")
+        -- Game.Print(
+        --     string.format("[energy] Player %s energy: %.0f",
+        --         Players.GetName(player),
+        --         energy))
+
+        if not Util.InventoryFind(player, "arrow-wood") then
+            Inventory.AddTo(player, "arrow-wood", 40)
+            Players.FlashMessage(player, "You got 40 arrows")
+        end
+
+        if not Util.InventoryFind(player, "bow") then
+            Inventory.AddTo(player, "bow")
+        end
+
+        if not Util.InventoryFind(player, "axe") then
+            Inventory.AddTo(player, "axe")
+        end
+
+    end
+
+end)
+
+--=========================================================
+-- Respawn zombies
+
+local debouncer_zombies = Debouncer.new(5)
+Game.SubscribeTo(Events.OnEverySecond, function()
+
+    if debouncer_zombies:call() then return end
+
+    local npc_count = NPCs.Count()
+    local player_count = Players.Count()
+    local zombie_count = Zombies.Count()
+
+    local max_zombies = (player_count + npc_count) * ZOMBIES_MULTIPLIER
+
+    local spawn_location = {
+        x = -4930 + math.random(400),
+        y = -16770 + math.random(400),
+        z = 2601
+    } 
+
+    spawn_location.z = Game.GroundAt(
+        spawn_location.x,
+        spawn_location.y,
+        spawn_location.z)
+
+    local aggressive = true
+    local sprinter = math.random(100) < SPRINTER_PERCENT_CHANCE 
+    
+    if zombie_count >= max_zombies then return end
+
+
+    Zombies.Create(spawn_location.x,
+        spawn_location.y,
+        spawn_location.z,
+        math.random(360),
+        aggressive,
+        sprinter)
+
+end)
+
+--=========================================================
+-- Respawn NPCs
+
+local debouncer_npcs = Debouncer.new(NEW_NPC_MIN_INTERVAL_SECONDS)
+Game.SubscribeTo(Events.OnEverySecond, function()
+
+    if debouncer_npcs:call() then return end
+
+    local spawn_location = {
+        x = -11060 + math.random(1200),
+        y = -16080 + math.random(1200),
+        z = 2640
+    } 
+
+    spawn_location.z = Game.GroundAt(
+        spawn_location.x,
+        spawn_location.y,
+        spawn_location.z)
+
+    if NPCs.Count() > MAX_NPCs then return end
+
+    NPCs.Create(spawn_location.x,
+        spawn_location.y,
+        spawn_location.z,
+        math.random(360))
+
 end)

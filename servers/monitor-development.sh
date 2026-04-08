@@ -1,21 +1,22 @@
 #!/bin/bash
 
 WATCH_DIR="development"
+RESULT_FILE="Development-User.lua"
 INTERVAL=1  # Check every second
 
 consolidate() {
-    cat "$WATCH_DIR/_commons.lua" > Concatenate.lua
-    echo >> Concatenate.lua
-    cat "$WATCH_DIR/_utils.lua" >> Concatenate.lua
-    echo >> Concatenate.lua
+    cat "$WATCH_DIR/_commons.lua" > $RESULT_FILE
+    echo >> $RESULT_FILE
+    cat "$WATCH_DIR/_utils.lua" >> $RESULT_FILE
+    echo >> $RESULT_FILE
 
     find "$WATCH_DIR" -maxdepth 1 -type f -name "*.lua" \
-        ! -name "commons.lua" ! -name "utils.lua" \
+        ! -name "_commons.lua" ! -name "_utils.lua" \
         | sort \
         | while IFS= read -r f; do
             cat "$f"
             echo
-            done >> Concatenate.lua
+            done >> $RESULT_FILE
 }
 
 get_snapshot() {

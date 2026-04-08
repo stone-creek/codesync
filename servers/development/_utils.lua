@@ -1,4 +1,7 @@
+--=========================================================
 -- Utils
+
+Util = {}
 
 --=========================================================
 -- Debouncer
@@ -23,7 +26,6 @@ end
 --=========================================================
 -- Util: does player have any inside his inventory?
 
-Util = {}
 Util.InventoryFind = function(player, item_class)
     
     for pos = 1, Inventory.Count(player) do

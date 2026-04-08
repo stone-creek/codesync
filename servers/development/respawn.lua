@@ -1,8 +1,11 @@
 --=========================================================
 -- Respawn zombies
 
+local debouncer_zombies = Debouncer.new(NEW_ZOMBIE_MIN_INTERVAL_SECONDS)
 Game.SubscribeTo(Events.OnEverySecond, function()
 
+    if debouncer_zombies:call() then return end
+    
     local npc_count = NPCs.Count()
     local player_count = Players.Count()
     local zombie_count = Zombies.Count()
