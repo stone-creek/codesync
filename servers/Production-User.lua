@@ -1,9 +1,10 @@
 -- Commons
 
 ZOMBIES_MULTIPLIER           = 1
-MAX_NPCs                     = 10
+MAX_NPCs                     = 12
 SPRINTER_PERCENT_CHANCE      = 4
 NEW_NPC_MIN_INTERVAL_SECONDS = 5
+
 
 --=========================================================
 -- Utils
@@ -223,10 +224,7 @@ end)
 --=========================================================
 -- Respawn zombies
 
-local debouncer_zombies = Debouncer.new(5)
 Game.SubscribeTo(Events.OnEverySecond, function()
-
-    if debouncer_zombies:call() then return end
 
     local npc_count = NPCs.Count()
     local player_count = Players.Count()

@@ -77,6 +77,7 @@ local debouncer_leaderboard = Debouncer.new(3)
 Events.SubscribeTo("every.second", function()
 
     if debouncer_leaderboard:call() then return end
+    if enable_leaderboard ~= true then return end
 
     leaderboard_messages = {}
 
@@ -85,7 +86,12 @@ Events.SubscribeTo("every.second", function()
     table.insert(leaderboard_messages, "[leaderboard]---------------------------------------------------------------")
 
     -- Sort the table
-    table.sort(Leaderboards, function(l,r)
+    local sorted = {}
+    for _, v in pairs(Leaderboards) do
+        table.insert(sorted, v)
+    end
+
+    table.sort(sorted, function(l,r)
 
         local kills_l = l.kills_ranged + l.kills_melee
         local kills_r = r.kills_ranged + r.kills_melee
@@ -97,7 +103,8 @@ Events.SubscribeTo("every.second", function()
     end)
 
     -- Format and display
-    for k, v in pairs(Leaderboards) do
+    for _, v in ipairs(sorted) do
+
 
         local kills = v.kills_ranged + v.kills_melee
         local kills_per_arrow = v.arrows_shot > 0 and v.kills_ranged / v.arrows_shot or 0

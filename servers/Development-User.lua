@@ -1,12 +1,13 @@
 -- Commons
 
-ZOMBIES_MULTIPLIER              = 1
+ZOMBIES_MULTIPLIER              = 2
 MAX_NPCs                        = 20
-SPRINTER_PERCENT_CHANCE         = 4
+SPRINTER_PERCENT_CHANCE         = 0
 NEW_NPC_MIN_INTERVAL_SECONDS    = 1
 NEW_ZOMBIE_MIN_INTERVAL_SECONDS = 1
 
-
+local enable_leaderboard = false
+Game.Print("[CLS]")
 --=========================================================
 -- Utils
 
@@ -130,6 +131,7 @@ local debouncer_leaderboard = Debouncer.new(3)
 Events.SubscribeTo("every.second", function()
 
     if debouncer_leaderboard:call() then return end
+    if enable_leaderboard ~= true then return end
 
     leaderboard_messages = {}
 
@@ -138,7 +140,12 @@ Events.SubscribeTo("every.second", function()
     table.insert(leaderboard_messages, "[leaderboard]---------------------------------------------------------------")
 
     -- Sort the table
-    table.sort(Leaderboards, function(l,r)
+    local sorted = {}
+    for _, v in pairs(Leaderboards) do
+        table.insert(sorted, v)
+    end
+
+    table.sort(sorted, function(l,r)
 
         local kills_l = l.kills_ranged + l.kills_melee
         local kills_r = r.kills_ranged + r.kills_melee
@@ -150,7 +157,8 @@ Events.SubscribeTo("every.second", function()
     end)
 
     -- Format and display
-    for k, v in pairs(Leaderboards) do
+    for _, v in ipairs(sorted) do
+
 
         local kills = v.kills_ranged + v.kills_melee
         local kills_per_arrow = v.arrows_shot > 0 and v.kills_ranged / v.arrows_shot or 0
@@ -177,7 +185,38 @@ Events.SubscribeTo("every.second", function()
     end
 
 end)
+--=========================================================
+-- Night Sprinters
 
+local night_flag = false
+
+Events.SubscribeTo("every.second", function() -- no params
+
+    -- Get time
+    local hour = Game.GetDayTime()
+    local is_night = (hour >= 22 or hour < 2)
+
+    Game.Print("[CLS currenthour]")
+    Game.Print("[currenthour]" .. string.format("Current hour:%.1f", hour))
+
+    -- No switch? Return.
+    if is_night == night_flag then return end
+
+    Game.Print("Changing night flag")
+    night_flag = is_night
+
+    zombie_guids = Zombies.FindAt(-10000,-15000,100000) -- starting zone
+
+    for pos = 1, #zombie_guids do
+        local guid = zombie_guids[pos]
+        Zombies.SetTraits(guid, { 
+            aggressive = true,
+            runner = is_night
+        })
+    end
+
+
+end)
 --=========================================================
 -- Replenish arrows, bow, axe
 
@@ -290,3 +329,23 @@ Game.SubscribeTo(Events.OnEverySecond, function()
 
 end)
 
+--=========================================================
+-- Tutorial
+
+-- zone_tutorial = Zones.Create(100,100,200,200) -- starting area
+-- zone_scarecrow = Zones.Create(1,2,3,4)        -- scarecrow shooting
+
+-- function SetupTotorial(player)
+
+--     if Quests.Done("zone-tutorial-use-wasd") then return end
+
+--     Zones.CreateVisibleForPlayer(player, 1,2,3,4)
+--     Notifications.Create("")
+-- end
+
+-- tutorial.OnEnter = function(player)
+-- end
+
+-- Player.OnLogin = function(player)
+--     SetupTutorial(player)
+-- end

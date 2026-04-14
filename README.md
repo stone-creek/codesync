@@ -43,6 +43,15 @@ or just use './test-and-upload.sh', which will call test.py and upload.py.
 
 It will check for changes in the 'workspace' directory, and if any, will run test.py and - if tests pass - will upload to the server.
 
+## Autodetect server modules
+
+The script 'monitor-development.sh' will observer the './servers/development' directory and if any file changes, it will concatenate them and regenerate './servers/Development-User.lua'. The files _commons.lua and _utils.lua are garanteed to be first, in that order.
+
+```
+cd servers
+./monitor-development.sh
+```
+
 ### Notes and references
 
 URL on production: 'https://stonecreek.pro'
