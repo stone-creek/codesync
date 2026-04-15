@@ -1,13 +1,15 @@
 -- Commons
 
 ZOMBIES_MULTIPLIER              = 2
-MAX_NPCs                        = 20
+MAX_NPCs                        = 100
 SPRINTER_PERCENT_CHANCE         = 0
 NEW_NPC_MIN_INTERVAL_SECONDS    = 1
 NEW_ZOMBIE_MIN_INTERVAL_SECONDS = 1
 
 local enable_leaderboard = false
 Game.Print("[CLS]")
+Notifications.Global("Game mode loaded: night sprinters",3,"bram")
+-- Game.SetDaysPerHour(100)
 --=========================================================
 -- Utils
 
@@ -190,6 +192,8 @@ end)
 
 local night_flag = false
 
+local debouncer_nightsprinters = Debouncer.new(1)
+
 Events.SubscribeTo("every.second", function() -- no params
 
     -- Get time
@@ -197,12 +201,18 @@ Events.SubscribeTo("every.second", function() -- no params
     local is_night = (hour >= 22 or hour < 2)
 
     Game.Print("[CLS currenthour]")
-    Game.Print("[currenthour]" .. string.format("Current hour:%.1f", hour))
+    if hour > 4 then
+        Game.Print("[currenthour]" .. string.format("Hours left before sunset:%.1f", 22 - hour))
+    end
 
-    -- No switch? Return.
-    if is_night == night_flag then return end
+    -- remove this
+    is_night = not night_flag
 
-    Game.Print("Changing night flag")
+    -- No switch or debouncing? Return.
+    if is_night == night_flag or debouncer_nightsprinters:call() then return end
+
+    local aggressive = is_night and "yes" or "no"
+    Game.Print("Changing night flag: aggressive = " .. aggressive)
     night_flag = is_night
 
     zombie_guids = Zombies.FindAt(-10000,-15000,100000) -- starting zone
@@ -214,7 +224,6 @@ Events.SubscribeTo("every.second", function() -- no params
             runner = is_night
         })
     end
-
 
 end)
 --=========================================================

@@ -3,7 +3,7 @@
 ZOMBIES_MULTIPLIER           = 1
 MAX_NPCs                     = 12
 SPRINTER_PERCENT_CHANCE      = 4
-NEW_NPC_MIN_INTERVAL_SECONDS = 5
+NEW_NPC_MIN_INTERVAL_SECONDS = 1
 
 
 --=========================================================
