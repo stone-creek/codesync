@@ -37,9 +37,12 @@ end)
 WorldItems.ReactsTo("construction", Events.OnClick, 
 function(player,construction)
     options = {}
-    menu_buildingmode = {"Building Mode", function(player,construction) 
-        Players.BuildingMode(player,true)
-    end }
+    menu_buildingmode = {
+        caption = "Building Mode", 
+        function(player,construction) 
+            Players.BuildingMode(player,true)
+        end 
+    }
     table.insert(options, menu_buildingmode)
     Game.Menu(player,construction,options)
 end)

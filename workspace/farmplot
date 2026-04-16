@@ -137,42 +137,45 @@ function(player,farmplot,coords)
 
     options = {}
     -------------------------------------------------------
-    table.insert(options, {"Harvest", function(player,farmplot) 
+    table.insert(options, {
+        caption = "Harvest", 
+        on_click = function(player,farmplot) 
 
-        age = WorldItems.Get(farmplot, "age")
-        if age > FarmplotAges.HARVEST_END then
-            Players.FlashMessage(player, "The crop is dead.")
-            return
-        elseif age < FarmplotAges.GROW_END then
-            Players.FlashMessage(player, "The crop is not ready to be harvested yet.")
-            return
-        end
+            age = WorldItems.Get(farmplot, "age")
+            if age > FarmplotAges.HARVEST_END then
+                Players.FlashMessage(player, "The crop is dead.")
+                return
+            elseif age < FarmplotAges.GROW_END then
+                Players.FlashMessage(player, "The crop is not ready to be harvested yet.")
+                return
+            end
 
-        Players.MoveTo(player, coords, {
-            acceptance_radius = 100,
-            on_completed = function(player)
+            Players.MoveTo(player, coords, {
+                acceptance_radius = 100,
+                on_completed = function(player)
 
-                Players.Action(player,"campfire_lightup", 4, {
-                    interruptable = true,
-                    progress_message = "Harvesting...",
-                    on_completed = function(player)
+                    Players.Action(player,"campfire_lightup", 4, {
+                        interruptable = true,
+                        progress_message = "Harvesting...",
+                        on_completed = function(player)
 
-                        age = 0
-                        WorldItems.Set(farmplot, "age", age)
-                        despawnPlants(farmplot)
-                        spawnPlants(farmplot,age)
+                            age = 0
+                            WorldItems.Set(farmplot, "age", age)
+                            despawnPlants(farmplot)
+                            spawnPlants(farmplot,age)
 
-                        Inventory.AddTo(player,"onion")
+                            Inventory.AddTo(player,"onion")
 
-                    end,
-                    on_interrupted = function(player)
-                        Players.FlashMessage(player, "Could not finish harvesting.")
-                    end
-                } )
-            end })
-                
+                        end,
+                        on_interrupted = function(player)
+                            Players.FlashMessage(player, "Could not finish harvesting.")
+                        end
+                    } )
+                end })
+                    
 
-    end })
+        end 
+    })
     -------------------------------------------------------
     Game.Menu(player,farmplot,options)
 end)

@@ -57,65 +57,67 @@ function(player,clickedCampfire)
     
     options = {}
     -----------------------------------------------------
-    menu_addfuel = {"Add Fuel", function(player,campfire) 
-
-        Players.FlashMessage(player, "Use firewood near the campfire to feed it.")
-        
-        -- Game.Print("Adding fuel to:" .. campfire)
-
-        -- fuel = WorldItems.Get(campfire, "fuel")
-        -- WorldItems.Set(campfire, "fuel", fuel + 120)
-
-    end }
+    menu_addfuel = {
+        caption = "Add Fuel", 
+        on_click = function(player,campfire) 
+            Players.FlashMessage(player, "Use firewood near the campfire to feed it.")
+            -- Game.Print("Adding fuel to:" .. campfire)
+            -- fuel = WorldItems.Get(campfire, "fuel")
+            -- WorldItems.Set(campfire, "fuel", fuel + 120)
+        end }
     table.insert(options, menu_addfuel)
     -----------------------------------------------------
-    menu_putout = {"Put Out", function(player,campfire) 
+    menu_putout = {
+        caption = "Put Out", 
+        on_click = function(player,campfire) 
 
-        local radius = WorldItems.GetRadius(campfire)
-        local coords = WorldItems.GetCoords(campfire)
+            local radius = WorldItems.GetRadius(campfire)
+            local coords = WorldItems.GetCoords(campfire)
 
-        Players.MoveTo(player, coords, {
-            acceptance_radius = 50 + radius,
-            on_completed = function(player)
+            Players.MoveTo(player, coords, {
+                acceptance_radius = 50 + radius,
+                on_completed = function(player)
 
-                Game.Print("on completed put out campfire")
+                    Game.Print("on completed put out campfire")
 
-                WorldItems.Set(campfire, "active", false)
-                Effects.Fire(campfire, false)
+                    WorldItems.Set(campfire, "active", false)
+                    Effects.Fire(campfire, false)
 
-            end,
-            on_interrupted = function(player)
+                end,
+                on_interrupted = function(player)
 
-                Game.Print("interrupted moving to put out")
-            end
-        })
-    end }
+                    Game.Print("interrupted moving to put out")
+                end
+            })
+        end }
     table.insert(options, menu_putout)
     -----------------------------------------------------
-    menu_lightup = {"Light Up", function(player,campfire) 
+    menu_lightup = {
+        caption = "Light Up", 
+        on_click = function(player,campfire) 
 
-        local radius = WorldItems.GetRadius(campfire)
-        local coords = WorldItems.GetCoords(campfire)
+            local radius = WorldItems.GetRadius(campfire)
+            local coords = WorldItems.GetCoords(campfire)
 
-        Players.MoveTo(player, coords, {
-            acceptance_radius = 50 + radius,
-            on_completed = function(player)
+            Players.MoveTo(player, coords, {
+                acceptance_radius = 50 + radius,
+                on_completed = function(player)
 
-                Players.Action(player,"campfire_lightup", 4, {
-                    interruptable = true,
-                    progress_message = "Lighting up campfire",
-                    on_completed = function(player)
-                        WorldItems.Set(campfire, "active", true)
-                        Effects.Fire(campfire, true)
-                    end,
-                    on_interrupted = function(player)
-                        Players.FlashMessage(player, "Did not finish light up")
-                    end
-                } )
-            end
-        })
+                    Players.Action(player,"campfire_lightup", 4, {
+                        interruptable = true,
+                        progress_message = "Lighting up campfire",
+                        on_completed = function(player)
+                            WorldItems.Set(campfire, "active", true)
+                            Effects.Fire(campfire, true)
+                        end,
+                        on_interrupted = function(player)
+                            Players.FlashMessage(player, "Did not finish light up")
+                        end
+                    } )
+                end
+            })
 
-    end }
+        end }
     table.insert(options, menu_lightup)
     -----------------------------------------------------
     Game.Menu(player,clickedCampfire,options)

@@ -223,32 +223,35 @@ function(player,forest,coords)
 
     options = {}
     -------------------------------------------------------
-    table.insert(options, {"Chop Tree", function(player,forest) 
+    table.insert(options, {
+        caption = "Chop Tree", 
+        on_click = function(player,forest) 
 
-        local weapon = Players.GetEquippedWeaponClass(player)
-        
-        if weapon ~= "axe" then
-            Players.FlashMessage(player, "You must have an AXE equipped.")
-            return
-        end
-
-        Players.MoveTo(player, coords, {
-            acceptance_radius = 100,
-            on_completed = function(player)
-                
-                Players.Action(player,"chopping_tree", 3, {
-                    interruptable = true,
-                    progress_message = "Chopping tree...",
-                    on_completed = function(player)
-
-                        OnFinishedChoppingTree(player, forest, coords)
-
-                    end
-                } )
+            local weapon = Players.GetEquippedWeaponClass(player)
+            
+            if weapon ~= "axe" then
+                Players.FlashMessage(player, "You must have an AXE equipped.")
+                return
             end
-        })
 
-    end })
+            Players.MoveTo(player, coords, {
+                acceptance_radius = 100,
+                on_completed = function(player)
+                    
+                    Players.Action(player,"chopping_tree", 3, {
+                        interruptable = true,
+                        progress_message = "Chopping tree...",
+                        on_completed = function(player)
+
+                            OnFinishedChoppingTree(player, forest, coords)
+
+                        end
+                    } )
+                end
+            })
+
+        end 
+    })
     -------------------------------------------------------
     Game.Menu(player,forest,options)
 end)

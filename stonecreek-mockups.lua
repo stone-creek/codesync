@@ -43,6 +43,9 @@ Players = {}
 Players.Count = function()
     return 2
 end
+Players.GetName = function(player)
+    return "Name"
+end
 Players.EquipWeapon = function(player, weapon_info)
 end
 Players.GetEquippedWeaponClass = function(player)

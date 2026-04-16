@@ -1,65 +1,115 @@
 -------------------------------------------------------------------------------
 -- Current implementation of tent mod
 -------------------------------------------------------------------------------
+function IsOwner(player, tent)
+
+    local owner_guid = WorldItems.Get(tent, "owner")
+    if owner_guid then
+        Game.Print("owner guid found:" .. owner_guid)
+        Game.Print("player guid:" .. player)
+        if owner_guid == player then 
+            Game.Print("guids are equal")
+            return true 
+        end
+    end
+
+    return false
+end
+-------------------------------------------------------------------------------
 WorldItems.ReactsTo("tent", Events.OnItemUse,
 function(player,inventory_guid,class)
     x,y,z, rotation = Game.InFrontOf(player,200,180)
     Game.Print(string.format("Spawning tent at %.0f,%0.f,%0.f, rotation=%0.f", x, y, z, rotation))
     if Inventory.RemoveFrom(player,inventory_guid) then
-        new_tent = WorldItems.SpawnItemAt("tent", x,y,z, rotation)
+        
+        local new_tent = WorldItems.SpawnItemAt("tent", x,y,z, rotation)
+
+        local player_name = Players.GetName(player)
+
+        WorldItems.Set(new_tent, "owner", player)
+        WorldItems.Set(new_tent, "owner_name", player_name)
+
+        -- TODO add owner guid to the tent
+        -- TODO add owner name to the tent
+        -- TODO update hover info
+        -- TODO make context menu only accessible to owners
+        -- TODO context manu for others ("this doesn't belong to you")
+        -- TODO repair tent?
     end
 end)
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("tent", Events.OnClick, 
 function(player,tent)
 
+    local is_owner = IsOwner(player, tent)
+    Game.Print(is_owner and "OWNER" or "not owner")
+
     options = {}
     -------------------------------------------------------
-    table.insert(options, {"Sleep", function(player,tent) 
+    table.insert(options, {
+        caption = "Sleep",
+        on_click = function(player,tent) 
 
-        if (Players.GetAttribute(player, "energy") > 50) then
-            Players.FlashMessage(player, "I'm not feeling tired enough to sleep.")
-        else
-            local radius = WorldItems.GetRadius(tent)
-            Game.Print(string.format("Radius: %0.f", radius))
-            local coords = WorldItems.GetCoords(tent)
-            Game.Print(string.format("Heading to tent at %.0f,%0.f,%0.f", coords.x, coords.y, coords.z))
-            Players.MoveTo(player, coords, { 
-                acceptance_radius = 50 + radius,
-                on_completed = function(player)
-                    
-                    Game.Print("Sleep: movement to tent completed")
+            if (Players.GetAttribute(player, "energy") > 50) then
+                Players.FlashMessage(player, "I'm not feeling tired enough to sleep.")
+            else
+                local radius = WorldItems.GetRadius(tent)
+                Game.Print(string.format("Radius: %0.f", radius))
+                local coords = WorldItems.GetCoords(tent)
+                Game.Print(string.format("Heading to tent at %.0f,%0.f,%0.f", coords.x, coords.y, coords.z))
+                Players.MoveTo(player, coords, { 
+                    acceptance_radius = 50 + radius,
+                    on_completed = function(player)
+                        
+                        Game.Print("Sleep: movement to tent completed")
 
-                    Players.Action(player,"sleep", 5, {
-                        interruptable = true,
-                        allow_aggro = false,
-                        dark_screen = true,
-                        player_invisible = true,
-                        action_bar = true,
-                        progress_message = "Sleeping...",
-                        on_completed = function(player)
-                            Players.SetAttribute(player, "energy", 100)
-                            -- Events.Broadcast("player.sleep",player)
-                        end,
-                        on_interrupted = function(player)
-                            Players.FlashMessage(player, "I could not sleep well. ")
-                        end
-                    } )
-                end,
-                on_interrupted = function(player)
-                    Game.Print("Movement interrupted")
-                end
-            } )
-        end
-    end })
+                        Players.Action(player,"sleep", 5, {
+                            interruptable = true,
+                            allow_aggro = false,
+                            dark_screen = true,
+                            player_invisible = true,
+                            action_bar = true,
+                            progress_message = "Sleeping...",
+                            on_completed = function(player)
+                                Players.SetAttribute(player, "energy", 100)
+                                -- Events.Broadcast("player.sleep",player)
+                            end,
+                            on_interrupted = function(player)
+                                Players.FlashMessage(player, "I could not sleep well. ")
+                            end
+                        } )
+                    end,
+                    on_interrupted = function(player)
+                        Game.Print("Movement interrupted")
+                    end
+                } )
+            end
+        end })
     -------------------------------------------------------
-    table.insert(options, {"Pack up", function(player,tent) 
-        -- Events.Broadcast("player.energy",player,{ cost = 10 })
-        WorldItems.DespawnItem(tent)
-        Inventory.AddTo(player, "tent")
-    end })
+    local pack_up_entry = {
+        caption = "Pack up", 
+        on_click = function(player,tent) 
+            -- Events.Broadcast("player.energy",player,{ cost = 10 })
+            WorldItems.DespawnItem(tent)
+            Inventory.AddTo(player, "tent")
+        end
+    }
+    if not is_owner then
+        pack_up_entry.disabled_message = "You must be the owner" 
+    end
+    table.insert(options, pack_up_entry) 
+    -------------------------------------------------------
+    table.insert(options, { caption = "Repair" })
+    -------------------------------------------------------
+    table.insert(options, { caption = "Info..." })
     -------------------------------------------------------
     Game.Menu(player,tent,options)
 end)
 -------------------------------------------------------------------------------
+WorldItems.ReactsTo("tent", Events.OnHover, 
+function(player,tent)
 
+    owner_name = WorldItems.Get(tent, "owner_name") or "unknown"
+
+    Players.PopHover(player, tent, "Tent", "Owner:" .. owner_name, "Used as storage or to recover energy.")
+end)
