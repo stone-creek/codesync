@@ -41,3 +41,33 @@ Util.InventoryFind = function(player, item_class)
     return false
 end
 
+--=========================================================
+-- Util: serialize table to string
+
+Util.ToJson = function(t, indent)
+    indent = indent or ""
+    local result = "{\n"
+    local inner = indent .. "  "
+    for k, v in pairs(t) do
+        local key = type(k) == "string" and ('["' .. k .. '"]') or ("[" .. k .. "]")
+        local val
+        if type(v) == "table" then
+            val = serializeTable(v, inner)
+        elseif type(v) == "string" then
+            val = '"' .. v:gsub('"', '\\"') .. '"'
+        else
+            val = tostring(v)
+        end
+        result = result .. inner .. key .. " = " .. val .. ",\n"
+    end
+    return result .. indent .. "}"
+end
+
+--=========================================================
+-- Util: deserialize table from string
+
+Util.FromJson = function(s)
+    local fn, err = load("return " .. s)
+    if not fn then return nil, err end
+    return fn()
+end

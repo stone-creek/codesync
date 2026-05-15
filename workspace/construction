@@ -36,10 +36,11 @@ end)
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("construction", Events.OnClick, 
 function(player,construction)
+    Game.Print("construction called")
     options = {}
     menu_buildingmode = {
         caption = "Building Mode", 
-        function(player,construction) 
+        on_click = function(player,construction) 
             Players.BuildingMode(player,true)
         end 
     }
@@ -61,6 +62,7 @@ function(construction,player,mesh,x,y,z,rotation)
     table.insert(parts,new_part)
     WorldItems.Set(construction,"parts",parts)
     WorldItems.AddMeshTo(construction, mesh,x,y,z,rotation) 
+    -- WorldItems.AddMeshTo(construction, "SM_Conifer_01",x,y,z,rotation) -- 0,0,0,0) 
 end)
 -------------------------------------------------------------------------------
 

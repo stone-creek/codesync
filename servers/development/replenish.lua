@@ -37,7 +37,6 @@ Game.SubscribeTo(Events.OnEverySecond, function()
         if not Util.InventoryFind(player, "axe") then
             Inventory.AddTo(player, "axe")
         end
-
     end
 
 end)

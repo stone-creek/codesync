@@ -1,14 +1,16 @@
 -- Commons
 
-ZOMBIES_MULTIPLIER              = 2
-MAX_NPCs                        = 100
+ZOMBIES_MULTIPLIER              = 0
+MAX_NPCs                        = 5
 SPRINTER_PERCENT_CHANCE         = 0
 NEW_NPC_MIN_INTERVAL_SECONDS    = 1
 NEW_ZOMBIE_MIN_INTERVAL_SECONDS = 1
 
 local enable_leaderboard = false
-Game.Print("[CLS]")
-Notifications.Global("Game mode loaded: night sprinters",3,"bram")
+local enable_night_sprinters = false
+
+-- Game.Print("[CLS]")
+Notifications.Global("Game mode loaded",3,"bram")
 -- Game.SetDaysPerHour(100)
 --=========================================================
 -- Utils
@@ -53,6 +55,36 @@ Util.InventoryFind = function(player, item_class)
     return false
 end
 
+--=========================================================
+-- Util: serialize table to string
+
+Util.ToJson = function(t, indent)
+    indent = indent or ""
+    local result = "{\n"
+    local inner = indent .. "  "
+    for k, v in pairs(t) do
+        local key = type(k) == "string" and ('["' .. k .. '"]') or ("[" .. k .. "]")
+        local val
+        if type(v) == "table" then
+            val = serializeTable(v, inner)
+        elseif type(v) == "string" then
+            val = '"' .. v:gsub('"', '\\"') .. '"'
+        else
+            val = tostring(v)
+        end
+        result = result .. inner .. key .. " = " .. val .. ",\n"
+    end
+    return result .. indent .. "}"
+end
+
+--=========================================================
+-- Util: deserialize table from string
+
+Util.FromJson = function(s)
+    local fn, err = load("return " .. s)
+    if not fn then return nil, err end
+    return fn()
+end
 
 --=========================================================
 -- Leaderboard
@@ -192,40 +224,33 @@ end)
 
 local night_flag = false
 
-local debouncer_nightsprinters = Debouncer.new(1)
+if enable_night_sprinters then
+    Events.SubscribeTo("every.second", function() -- no params
 
-Events.SubscribeTo("every.second", function() -- no params
+        -- Get time
+        local hour = Game.GetDayTime()
+        local is_night = (hour > 22 or hour < 2)
 
-    -- Get time
-    local hour = Game.GetDayTime()
-    local is_night = (hour >= 22 or hour < 2)
+        Game.Print("[CLS currenthour]")
+        if hour > 4 and hour < 23 then
+            Game.Print("[currenthour]" .. string.format("Hours left before sunset:%.1f", 22 - hour))
+        end
 
-    Game.Print("[CLS currenthour]")
-    if hour > 4 then
-        Game.Print("[currenthour]" .. string.format("Hours left before sunset:%.1f", 22 - hour))
-    end
+        -- No switch? Return.
+        if is_night == night_flag then return end
 
-    -- remove this
-    is_night = not night_flag
+        night_flag = is_night
+        zombie_guids = Zombies.FindAt(-10000,-15000,100000) -- starting zone
 
-    -- No switch or debouncing? Return.
-    if is_night == night_flag or debouncer_nightsprinters:call() then return end
-
-    local aggressive = is_night and "yes" or "no"
-    Game.Print("Changing night flag: aggressive = " .. aggressive)
-    night_flag = is_night
-
-    zombie_guids = Zombies.FindAt(-10000,-15000,100000) -- starting zone
-
-    for pos = 1, #zombie_guids do
-        local guid = zombie_guids[pos]
-        Zombies.SetTraits(guid, { 
-            aggressive = true,
-            runner = is_night
-        })
-    end
-
-end)
+        for pos = 1, #zombie_guids do
+            local guid = zombie_guids[pos]
+            Zombies.SetTraits(guid, { 
+                aggressive = true,
+                runner = is_night
+            })
+        end
+    end)
+end
 --=========================================================
 -- Replenish arrows, bow, axe
 
@@ -265,7 +290,6 @@ Game.SubscribeTo(Events.OnEverySecond, function()
         if not Util.InventoryFind(player, "axe") then
             Inventory.AddTo(player, "axe")
         end
-
     end
 
 end)
@@ -341,20 +365,83 @@ end)
 --=========================================================
 -- Tutorial
 
--- zone_tutorial = Zones.Create(100,100,200,200) -- starting area
--- zone_scarecrow = Zones.Create(1,2,3,4)        -- scarecrow shooting
+local tutorial_steps = {
+    { "Welcome to Stone Creek!", "In this quick tutorial we'll learn the basics." },
+    { "Movement", "Use WASD (or IJKL if you are left-handed) to move around the map." },
+    { "Movement", "Hold the main mouse button to move the camera around." },
+    { "Movement", "Use the mouse wheel to zoom in/out." },
+    { "Movement", "You can open/close the map pressing M." },
+    { "Combat",   "Press the secondary mouse button to enter combat stance." },
+    { "Combat",   "While in combat stance, you move slower but you can fight!" },
+    { "Combat",   "On combat stance, press main button to attack." },
+    { "Combat",   "Check your inventory with N and double-click any weapon to equip it." },
+    { "Energy",   "The yellow bar on the right is your energy." },
+    { "Energy",   "Sleeping on a tent when you are tired will recover your energy." },
+    { "Energy",   "To sleep, find a tent, click on it, and select 'Sleep' option." },
+    { "Energy",   "High energy, easier fights! Avoid fighting with low energy." },
+    { "Foraging", "If you see a small shiny object on the ground, get closer to forage it." },
+    { "Crafting", "You can craft things pressing the C key." },
+    { "Terminal", "Pressing ENTER will activate your mini-computer. Use it to talk to others!" },
+    { "Terminal", "It also has a few commands, like /help." },
+    { "Terminal", "Or /tutorial, if you want to see this tutorial again." },
+    { "Questions?","Check our discord at https://stonecreek.pro/discord" },
+    { "Join us!", "Or the daily Twitch stream at https://twitch.tv/jsteinbach" }
+}
 
--- function SetupTotorial(player)
+local tutorial_metadata_id = "done-tutorial-v036"
+-----------------------------------------------------------
 
---     if Quests.Done("zone-tutorial-use-wasd") then return end
+local TerminalCallbacks = {}
+TerminalCallbacks.on_close = function(player,data)
+    Terminal.ScreenClose(player)
+end
 
---     Zones.CreateVisibleForPlayer(player, 1,2,3,4)
---     Notifications.Create("")
--- end
+TerminalCallbacks.on_next = function(player,data_json)
 
--- tutorial.OnEnter = function(player)
--- end
+    local index = Util.FromJson(data_json).page
 
--- Player.OnLogin = function(player)
---     SetupTutorial(player)
--- end
+    local data = {
+        page = index + 1
+    }
+
+    local entry = tutorial_steps[index + 1]
+    local title = entry[1]
+    local message = entry[2]
+
+    local right_button = "Finish"
+    local right_callback = TerminalCallbacks.on_close
+
+    if data.page < #tutorial_steps then
+        right_button = "Next"
+        right_callback = TerminalCallbacks.on_next
+    else
+        Players.SetMetadata(player, tutorial_metadata_id, "yes")
+    end
+
+    Terminal.ScreenSimple(player, title, message, 
+        "Close", TerminalCallbacks.on_close, 
+        right_button, right_callback, 
+        Util.ToJson(data))
+end
+
+function ExecuteTutorial(player)
+    local json = {
+        page = 0
+    }
+    
+    TerminalCallbacks.on_next(player, Util.ToJson(json))
+end
+
+-----------------------------------------------------------
+
+-- Add the /tutorial command to display tutorial.
+Terminal.Register("tutorial", "Displays a game tutorial.", ExecuteTutorial)
+
+-- Check whenever a player gets online.
+Events.SubscribeTo("player.online", function(params) 
+
+    local done = Players.GetMetadata(params.player_guid, tutorial_metadata_id)
+    if done == "yes" then return end
+
+    ExecuteTutorial(params.player_guid)
+end)

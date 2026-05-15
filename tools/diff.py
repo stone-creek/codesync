@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description="Compare code from classes at locat
 # parser.add_argument("--url", default="https://stonecreek.pro/api/v2/items", help="API items endpoint")
 parser.add_argument("--url", required=True, help="API items endpoint")
 parser.add_argument("--auth", required=True, help="Authentication token")
-parser.add_argument("--location", default="workspace", help="Directory with files")
+parser.add_argument("--location", default="../workspace", help="Directory with files")
 
 args = parser.parse_args()
 

@@ -10,6 +10,8 @@ pip3 install requests
 
 ## Commands
 
+Use the commands inside the 'tools' directory:
+
 ```
 python3 auth.py --url=[url] --login=[login] --password=[password]
 python3 download.py --url=[url] --auth=[token] --location=[workspace]

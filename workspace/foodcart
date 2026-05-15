@@ -1,0 +1,27 @@
+-------------------------------------------------------------------------------
+-- Food cart mod
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("foodcart", Events.OnItemUse,
+function(player,inventory_guid,class)
+    x,y,z,rotation = Game.InFrontOf(player,200,180)
+    if Inventory.RemoveFrom(player,inventory_guid) then
+        local new_foodcart = WorldItems.SpawnItemAt("foodcart", x,y,z, rotation)
+    end
+end)
+
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("foodcart", Events.OnClick, 
+function(player,foodcart,coords)
+
+    WorldItems.AddToInventory(foodcart, "tent")
+
+    -- Dump inventory
+    Game.Print(string.format("Clicked foodcart has %d inventory items", WorldItems.InventoryCount(foodcart)))
+    for pos = 1, WorldItems.InventoryCount(foodcart) do
+
+        item = WorldItems.InventoryAt(foodcart,pos)
+        Game.Print(string.format("     item:%s   x %d", item.handle, item.quantity))
+    end
+
+end)
+-------------------------------------------------------------------------------

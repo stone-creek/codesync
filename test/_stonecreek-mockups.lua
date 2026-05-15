@@ -140,3 +140,6 @@ WorldItems.GetClosestMeshCoords = function(coords)
     return {1,2,3}
 end
 -------------------------------------------------------------------------------
+
+
+-- print("mocks loaded")
