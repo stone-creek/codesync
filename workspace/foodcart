@@ -13,15 +13,29 @@ end)
 WorldItems.ReactsTo("foodcart", Events.OnClick, 
 function(player,foodcart,coords)
 
-    WorldItems.AddToInventory(foodcart, "tent")
+    -- WorldItems.AddToInventory(foodcart, "tent")
+    
+    -- This table will hold the data
+    local table_debug = {
+        title = "Food cart inventory (Server) guid:",
+        columns = { "Inventory Guid", "Item Handle", "Quantity", "Metadata" },
+        rows = {}
+    }
 
     -- Dump inventory
-    Game.Print(string.format("Clicked foodcart has %d inventory items", WorldItems.InventoryCount(foodcart)))
     for pos = 1, WorldItems.InventoryCount(foodcart) do
 
         item = WorldItems.InventoryAt(foodcart,pos)
-        Game.Print(string.format("     item:%s   x %d", item.handle, item.quantity))
+        local new_row = {
+            item.handle,
+            string.sub(item.guid, 1, 8) .. "...",
+            item.quantity,
+            item.metadata
+        }
+        table.insert(table_debug.rows, new_row)
     end
+    
+    Debug.PushTable(player, table_debug)
 
 end)
 -------------------------------------------------------------------------------

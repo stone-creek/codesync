@@ -1,5 +1,5 @@
-
-
+--=========================================================
+-- Player attributes
 
     -- // TODO Read code from server and apply to Lua VM
     -- // FString ServerCode = ANSI_TO_TCHAR(

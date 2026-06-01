@@ -62,7 +62,6 @@ function(construction,player,mesh,x,y,z,rotation)
     table.insert(parts,new_part)
     WorldItems.Set(construction,"parts",parts)
     WorldItems.AddMeshTo(construction, mesh,x,y,z,rotation) 
-    -- WorldItems.AddMeshTo(construction, "SM_Conifer_01",x,y,z,rotation) -- 0,0,0,0) 
 end)
 -------------------------------------------------------------------------------
 

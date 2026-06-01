@@ -1,4 +1,4 @@
--- Commons
+-- Commons v1.1
 
 ZOMBIES_MULTIPLIER              = 0
 MAX_NPCs                        = 5

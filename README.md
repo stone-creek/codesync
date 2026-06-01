@@ -35,19 +35,28 @@ python3 upload.py --url=[url] --auth=$(auth_token)
 
 or just use './test-and-upload.sh', which will call test.py and upload.py.
 
-## New: autodetect filesystem changes
+## New: hot reload
 
-* Make sure the script 'initenv.sh' has the correct settings (login name and password).
-* Use:
+* For mods (changes will automatically update the server)
 ```
-./monitor.sh
+cd tools
+./monitor-workspace.sh
 ```
 
 It will check for changes in the 'workspace' directory, and if any, will run test.py and - if tests pass - will upload to the server.
 
-## Autodetect server modules
+## Server game mode modules
 
-The script 'monitor-development.sh' will observer the './servers/development' directory and if any file changes, it will concatenate them and regenerate './servers/Development-User.lua'. The files _commons.lua and _utils.lua are garanteed to be first, in that order.
+```
+cd tools
+./monitor-server-code.sh
+```
+
+The script 'monitor-server-code.sh' will observer the './servers/development' directory and if any file changes, it will concatenate them and reupload. 
+
+The files _commons.lua and _utils.lua are garanteed to be first, in that order.
+
+Use './tools/upload-server-code-production.sh' to move development to production.
 
 ```
 cd servers
