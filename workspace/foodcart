@@ -14,28 +14,32 @@ WorldItems.ReactsTo("foodcart", Events.OnClick,
 function(player,foodcart,coords)
 
     -- WorldItems.AddToInventory(foodcart, "tent")
+    -- WorldItems.AddToInventory(foodcart, "apple", 3)
+    -- WorldItems.AddToInventory(foodcart, "bow")
+    -- WorldItems.AddToInventory(foodcart, "axe")
+    -- WorldItems.AddToInventory(foodcart, "arrow-wood", 10)
     
-    -- This table will hold the data
-    local table_debug = {
-        title = "Food cart inventory (Server) guid:",
-        columns = { "Inventory Guid", "Item Handle", "Quantity", "Metadata" },
-        rows = {}
-    }
+    -- -- This table will hold the data
+    -- local table_debug = {
+    --     title = "Food cart inventory (Server) guid:",
+    --     columns = { "Inventory Guid", "Item Handle", "Quantity", "Metadata" },
+    --     rows = {}
+    -- }
 
-    -- Dump inventory
-    for pos = 1, WorldItems.InventoryCount(foodcart) do
+    -- -- Dump inventory
+    -- for pos = 1, WorldItems.InventoryCount(foodcart) do
 
-        item = WorldItems.InventoryAt(foodcart,pos)
-        local new_row = {
-            item.handle,
-            string.sub(item.guid, 1, 8) .. "...",
-            item.quantity,
-            item.metadata
-        }
-        table.insert(table_debug.rows, new_row)
-    end
+    --     item = WorldItems.InventoryAt(foodcart,pos)
+    --     local new_row = {
+    --         item.handle,
+    --         string.sub(item.guid, 1, 8) .. "...",
+    --         item.quantity,
+    --         item.metadata
+    --     }
+    --     table.insert(table_debug.rows, new_row)
+    -- end
     
-    Debug.PushTable(player, table_debug)
+    -- Debug.PushTable(player, table_debug)
 
 end)
 -------------------------------------------------------------------------------

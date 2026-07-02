@@ -27,10 +27,10 @@ try:
     local_files = {}
 
     # Load remote files into the dictionary (key=class name)
-    for item in data["Items"]:
-        if item.get("Sourcecode"):
-            class_name = item["ItemHandle"]
-            remote_files[class_name]=item["Sourcecode"]
+    for item in data["items"]:
+        if item.get("sourcecode"):
+            class_name = item["itemHandle"]
+            remote_files[class_name]=item["sourcecode"]
 
     # Load local files into the dictionary (key=filename)
     for filename in os.listdir(args.location):

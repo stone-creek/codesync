@@ -11,8 +11,8 @@ parser.add_argument("--password", required=True, help="Password")
 args = parser.parse_args()
 
 credentials = {
-    "Login": args.login,
-    "Password": args.password
+    "login": args.login,
+    "password": args.password
 }
 
 try:
@@ -24,7 +24,7 @@ try:
     response.raise_for_status()
 
     data = response.json()
-    token = data.get("Auth")
+    token = data.get("auth")
     
     if token:
         print(token)

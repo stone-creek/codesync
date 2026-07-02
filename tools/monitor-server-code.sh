@@ -36,7 +36,7 @@ push_to_server() {
     curl -X PATCH "http://localhost/api/v2/server/d2beef0b-5280-4e05-8c2e-abc36f29dd18" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $auth_token" \
-    -d "{\"Sourcecode\": $(cat $TEMP_FILE | jq -Rs .)}"
+    -d "{\"sourcecode\": $(cat $TEMP_FILE | jq -Rs .)}"
 }
 
 echo "Watching $WATCH_DIR for changes..."

@@ -24,13 +24,13 @@ try:
     os.makedirs(args.location, exist_ok=True)
 
     data = response.json()
-    for item in data["Items"]:
+    for item in data["items"]:
 
-        if item.get("Sourcecode"):
-            class_name = item["ItemHandle"]
+        if item.get("sourcecode"):
+            class_name = item["itemHandle"]
             file_path = os.path.join(args.location, class_name)
             with open(file_path, "w") as f:
-                f.write(item["Sourcecode"])
+                f.write(item["sourcecode"])
 
 except requests.exceptions.HTTPError as http_err:
     print(f"HTTP error occurred: {http_err} - {response.text}")

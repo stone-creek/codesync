@@ -2,8 +2,10 @@
 -- Replenish arrows, bow, axe
 
 local debouncer_replenish = Debouncer.new(5)
+
 Game.SubscribeTo(Events.OnEverySecond, function()
 
+    if not enable_replenishment then return end
     if debouncer_replenish:call() then return end
 
     for pos_player = 1, Players.Count() do 

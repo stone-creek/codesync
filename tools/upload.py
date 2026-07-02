@@ -27,12 +27,12 @@ try:
     local_files = {}
 
     # Load remote files into the dictionary (key=class name)
-    for item in data["Items"]:
-        class_name = item["ItemHandle"]
+    for item in data["items"]:
+        class_name = item["itemHandle"]
         remote_jsons[class_name]=item
         remote_files[class_name]=''
-        if item.get("Sourcecode"):
-            remote_files[class_name]=item["Sourcecode"]
+        if item.get("sourcecode"):
+            remote_files[class_name]=item["sourcecode"]
 
     # Load local files into the dictionary (key=filename)
     for filename in os.listdir(args.location):
@@ -61,10 +61,10 @@ try:
 
             upload_data = remote_jsons.get(filename)
             # print(f"Uploading... {upload_data}")
-            upload_data["Sourcecode"] = content_local
-            del upload_data["Id"]
-            del upload_data["CreatedAt"]
-            del upload_data["UpdatedAt"]
+            upload_data["sourcecode"] = content_local
+            del upload_data["id"]
+            del upload_data["createdAt"]
+            del upload_data["updatedAt"]
 
             print(f"Updating file: {filename}...")
             response = requests.put(args.url + "/api/v2/item", json=upload_data, headers=headers)
