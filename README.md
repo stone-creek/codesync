@@ -40,7 +40,7 @@ or just use './test-and-upload.sh', which will call test.py and upload.py.
 * For mods (changes will automatically update the server)
 ```
 cd tools
-./monitor-workspace.sh
+./monitor-mods.sh
 ```
 
 It will check for changes in the 'workspace' directory, and if any, will run test.py and - if tests pass - will upload to the server.

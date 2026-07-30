@@ -1,0 +1,13 @@
+-----------------------------------------------------------
+WorldItems.ReactsTo("water-bottle", Events.OnItemUse,
+function(player,inventory_guid,class)
+    
+    local thirst = Players.GetAttribute(player, 'thirst')
+    thirst = thirst + 34
+    if thirst > 100 then thirst = 100 end
+    Players.SetAttribute(player, 'thirst', thirst)
+
+    Inventory.RemoveFrom(player, inventory_guid)
+    Game.Print("drained water from bottle")
+
+end)

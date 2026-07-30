@@ -1,6 +1,12 @@
---[[
+-----------------------------------------------------------
+WorldItems.ReactsTo("apple", Events.OnItemUse,
+function(player,inventory_guid,class)
+    
+    local hunger = Players.GetAttribute(player, 'hunger')
+    hunger = hunger + 34
+    if hunger > 100 then hunger = 100 end
+    Players.SetAttribute(player, 'hunger', hunger)
+    Inventory.RemoveFrom(player, inventory_guid)
 
-local on dev
-
-]]
+end)
 

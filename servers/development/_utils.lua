@@ -34,11 +34,11 @@ Util.InventoryFind = function(player, item_class)
         local class = Inventory.ClassOf(player, item)
 
         if class == item_class then
-            return true
+            return item
         end
     end
 
-    return false
+    return nil
 end
 
 --=========================================================

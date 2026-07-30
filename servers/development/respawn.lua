@@ -28,7 +28,6 @@ Game.SubscribeTo(Events.OnEverySecond, function()
     
     if zombie_count >= max_zombies then return end
 
-
     Zombies.Create(spawn_location.x,
         spawn_location.y,
         spawn_location.z,

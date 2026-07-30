@@ -21,10 +21,17 @@ Game.SubscribeTo(Events.OnEverySecond, function()
         local hunger = Players.GetAttribute(player, 'hunger')
         local thirst = Players.GetAttribute(player, 'thirst')
 
-        health = health + 0.01
-        energy = energy - 0.01
-        hunger = hunger - 0.01
-        thirst = thirst - 0.01
+        if health > 0 then
+            health = health + 0.01
+            energy = energy - 0.01
+            hunger = hunger - 0.1
+            thirst = thirst - 0.1
+        else
+
+            energy = 0
+            hunger = 0
+            thirst = 0
+        end
 
         health = Clamp(health)
         energy = Clamp(energy)

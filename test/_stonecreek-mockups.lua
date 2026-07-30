@@ -68,6 +68,11 @@ end
 Players.GetMetadata = function(player,key)
     return "value"
 end
+Players.GetAttribute = function(player,attribute)
+    return 1.5 
+end
+Players.SetAttribute = function(player,attribute,value)
+end
 -------------------------------------------------------------------------------
 Inventory = {}
 Inventory.RemoveFrom = function(player,inventory)

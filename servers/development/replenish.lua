@@ -12,21 +12,6 @@ Game.SubscribeTo(Events.OnEverySecond, function()
 
         local player = Players.At(pos_player)
 
-        Players.SetAttribute(player, "hunger", 100)
-        Players.SetAttribute(player, "thirst", 100)
-        
-        local energy = Players.GetAttribute(player, "energy")
-        if energy > 10 then
-            energy = energy - 1
-            Players.SetAttribute(player, "energy", energy)
-        end
-
-        -- Game.Print("[CLS energy]")
-        -- Game.Print(
-        --     string.format("[energy] Player %s energy: %.0f",
-        --         Players.GetName(player),
-        --         energy))
-
         if not Util.InventoryFind(player, "arrow-wood") then
             Inventory.AddTo(player, "arrow-wood", 40)
             Players.FlashMessage(player, "You got 40 arrows")

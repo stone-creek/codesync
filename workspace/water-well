@@ -1,0 +1,83 @@
+-------------------------------------------------------------------------------
+-- Water well mod
+-------------------------------------------------------------------------------
+local Util = {}
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("water-well", Events.OnItemUse,
+function(player,inventory_guid,class)
+    x,y,z,rotation = Game.InFrontOf(player,200,180)
+    if Inventory.RemoveFrom(player,inventory_guid) then
+        local new_foodcart = WorldItems.SpawnItemAt("water-well", x,y,z, rotation)
+    end
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("water-well", Events.OnClick, 
+function(player,world_item,coords)
+
+    options = {}
+    -------------------------------------------------------
+    table.insert(options, {
+        caption = "Get Water", 
+        on_click = function(player,world_item) 
+
+            -- Add bottle of water if none present
+            local inventory_bottle = Util.FindOrCreateBottle(player)
+
+            if inventory_bottle == nil then
+                Players.FlashMessage(player, "Could not locate a water bottle.")
+                return
+            end
+
+            -- Add units 
+            Players.MoveTo(player, coords, {
+                acceptance_radius = 100,
+                on_completed = function(player)
+                    Players.Action(player,"retrieving_water", 3, {
+                        interruptable = true,
+                        progress_message = "Retrieving water...",
+                        on_completed = function(player)
+                            Util.OnFinishedRetrievingWater(player, inventory_bottle)
+                        end
+                    } )
+                end
+            })
+
+        end 
+    })
+    -------------------------------------------------------
+    Game.Menu(player,world_item,options)
+end)
+-------------------------------------------------------------------------------
+Util.InventoryFind = function(player, item_class)
+    
+    for pos = 1, Inventory.Count(player) do
+        
+        local item = Inventory.At(player, pos)
+        local class = Inventory.ClassOf(player, item)
+
+        if class == item_class then
+            return item
+        end
+    end
+
+    return nil
+end
+-------------------------------------------------------------------------------
+Util.OnFinishedRetrievingWater = function(player, inventory_bottle)
+    Game.Print("Finished retrieving water")
+
+    local total = Inventory.GetStackCount(player,inventory_bottle)
+    if total < 10 then
+        Inventory.SetStackCount(player,inventory_bottle, 10)
+    end
+
+end
+-------------------------------------------------------------------------------
+Util.FindOrCreateBottle = function(player)
+    local bottle = Util.InventoryFind(player, "water-bottle")
+
+    if bottle == nil then
+        bottle = Inventory.AddTo(player, "water-bottle")
+    end
+    return bottle
+end

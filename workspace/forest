@@ -3,39 +3,8 @@
 -------------------------------------------------------------------------------
 
 MAX_TREES = 15 
-SAPLING_CHANCE_EVERY_MINUTE = 20
+SAPLING_CHANCE_EVERY_MINUTE = 100
 
--------------------------------------------------------------------------------
--- Rotate a vector around its z axis
-function rotateZ(x, y, z, degrees)
-    local rad = math.rad(degrees)
-    local cos = math.cos(rad)
-    local sin = math.sin(rad)
-
-    local x2 = x * cos - y * sin
-    local y2 = x * sin + y * cos
-    local z2 = z
-
-    return x2, y2, z2
-end
--------------------------------------------------------------------------------
-function translateWorldToRelative(x,y,z,item)
-
-    local coords = WorldItems.GetCoords(item)
-
-    newX,newY,newZ = rotateZ(
-        coords.x - x,
-        coords.y - y,
-        coords.z - z,
-        180 - coords.rotation)
-
-    return {
-        x = newX,
-        y = newY,
-        z = 0 - newZ
-    }
-
-end
 -------------------------------------------------------------------------------
 function tokenizeForestPart(str)
     local tokens = {}
@@ -151,11 +120,6 @@ end)
 function destroyTreeAt(forest,coords)
 
     local adjusted_coords = WorldItems.GetClosestMeshCoords(coords)
-    Game.Print(
-        string.format(
-            "Destroy tree at called at adjusted coords %.1f,%.1f (original coords %.1f,%.1f)", 
-            adjusted_coords.x, adjusted_coords.y,
-            coords.x, coords.y))
 
     local trees = WorldItems.Get(forest, "trees")
     local base_coords = WorldItems.GetCoords(forest)
@@ -167,36 +131,44 @@ function destroyTreeAt(forest,coords)
         local tree_found = false
 
         for treePos, treeString in ipairs(trees) do
+
             tree = tokenizeForestPart(treeString)
 
-            -- Calculate the distance from the target (coords) and the tree 
-            distance = distance3D( 
-                {adjusted_coords.x, adjusted_coords.y, 0}, 
-                {tree.x, tree.y, 0} )
+            -- local tree_coords = {}
 
-            if distance < 50 then
-
-                -- Debug.DrawSphere(tree_coords.x,tree_coords.y,tree_coords.z, 200)
-                -- Game.Print(string.format("######## SUCCESS removing tree=%f,%f distance = %f...", 
-                --     tree.x,tree.y,
-                --     distance))
+            local tree_coords = WorldItems.GetAbsoluteCoords(forest, tree.x, tree.y, tree.z)
                 
+            local distance = distance3D( 
+                {coords.x, coords.y, 0}, 
+                {tree_coords.x, tree_coords.y, 0} )
+
+            Game.Print(string.format("distance to %.0f,%.0f,%.0f       %.1f",
+                tree_coords.x,
+                tree_coords.y,
+                tree_coords.z,
+                distance))
+            
+            if distance < 150 then
+
+                -- Debug.DrawSphere(tree_coords.x,tree_coords.y,tree_coords.z, 150)
+
+                Game.Print(string.format("Found tree, removing at %.1f,%.1f", tree_coords.x,tree_coords.y))
                 tree_found = true
                 break
             end
+
         end
 
-
         if tree_found and tree then
-            -- Game.Print("######## TREE FOUND")
             table.remove(trees, treePos)
             WorldItems.Set(forest, "trees", trees)
             WorldItems.DestroyMeshAt(forest,tree.x,tree.y,tree.z)
             return true
         end
+
     end
 
-    -- Game.Print("######## tree not found")
+    Game.Print(string.format("Could not find a tree at coords %.0f, %.0f, %.0f", coords.x, coords.y, coords.z))
     return false
 end
 -------------------------------------------------------------------------------
@@ -204,6 +176,7 @@ function OnFinishedChoppingTree(player, forest, coords)
 
     if destroyTreeAt(forest,coords) then
        
+        Players.FlashMessage(player, "Tree chopped down.")
         Inventory.AddTo(player,"lumber")
         Events.Broadcast("forest", "tree.chopped", coords)
 
@@ -230,7 +203,7 @@ function(player,forest,coords)
             local weapon = Players.GetEquippedWeaponClass(player)
             
             if weapon ~= "axe" then
-                Players.FlashMessage(player, "You must have an AXE equipped.")
+                Players.FlashMessage(player, "You must have an axe equipped.")
                 return
             end
 
@@ -299,11 +272,7 @@ function()
 
             if valid then
 
-                local distance = distance3D( 
-                    {coords.x, coords.y, coords.z}, 
-                    {newX, newY, newZ} )
-
-                relative_coords = translateWorldToRelative(newX,newY,newZ,forest)
+                relative_coords = WorldItems.GetRelativeCoords(forest,newX,newY,newZ)
 
                 local newRotation = math.random(360)
                 local new_sapling = string.format(
@@ -311,7 +280,7 @@ function()
                     relative_coords.x,
                     relative_coords.y,
                     relative_coords.z,
-                    newRotation,
+                    newRotation - 180,
                     0,
                     100)
 
@@ -331,3 +300,33 @@ function()
 
     end
 end)
+
+
+
+-- Test, safe to delete below
+
+-- -------------------------------------------------------------------------------
+-- WorldItems.ReactsTo("forest", Events.OnEverySecond, 
+-- function()
+
+--     local count = WorldItems.Count("forest")
+--     for pos = 1, count do
+--         local forest = WorldItems.At("forest", pos)
+--         local trees = WorldItems.Get(forest, "trees")
+        
+--         for _,treeString in ipairs(trees) do
+--             local tree = tokenizeForestPart(treeString)
+
+--             local absolute_coords = WorldItems.GetAbsoluteCoords(forest,tree.x,tree.y,tree.z)
+
+--             local old_relative_coords = translateWorldToRelative(absolute_coords.x,absolute_coords.y,absolute_coords.z,forest)
+--             local new_relative_coords = WorldItems.GetRelativeCoords(forest,absolute_coords.x,absolute_coords.y,absolute_coords.z)
+
+--             Game.Print(string.format("original:%.0f,%.0f,%.0f    old method:%.0f,%.0f,%.0f    new method:%.0f,%.0f,%.0f",
+--                 tree.x,tree.y,tree.z,
+--                 old_relative_coords.x, old_relative_coords.y, old_relative_coords.z,
+--                 new_relative_coords.x, new_relative_coords.y, new_relative_coords.z))
+
+--         end
+--     end
+-- end)
