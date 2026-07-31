@@ -20,14 +20,6 @@ function(player,world_item,coords)
         caption = "Get Water", 
         on_click = function(player,world_item) 
 
-            -- Add bottle of water if none present
-            local inventory_bottle = Util.FindOrCreateBottle(player)
-
-            if inventory_bottle == nil then
-                Players.FlashMessage(player, "Could not locate a water bottle.")
-                return
-            end
-
             -- Add units 
             Players.MoveTo(player, coords, {
                 acceptance_radius = 100,
@@ -36,7 +28,7 @@ function(player,world_item,coords)
                         interruptable = true,
                         progress_message = "Retrieving water...",
                         on_completed = function(player)
-                            Util.OnFinishedRetrievingWater(player, inventory_bottle)
+                            Util.OnFinishedRetrievingWater(player)
                         end
                     } )
                 end
@@ -62,22 +54,18 @@ Util.InventoryFind = function(player, item_class)
 
     return nil
 end
--------------------------------------------------------------------------------
-Util.OnFinishedRetrievingWater = function(player, inventory_bottle)
-    Game.Print("Finished retrieving water")
 
-    local total = Inventory.GetStackCount(player,inventory_bottle)
-    if total < 10 then
-        Inventory.SetStackCount(player,inventory_bottle, 10)
-    end
-
-end
 -------------------------------------------------------------------------------
-Util.FindOrCreateBottle = function(player)
+Util.OnFinishedRetrievingWater = function(player)
+
     local bottle = Util.InventoryFind(player, "water-bottle")
-
     if bottle == nil then
         bottle = Inventory.AddTo(player, "water-bottle")
     end
-    return bottle
+
+    local total = Inventory.GetStackCount(player,bottle)
+    if total < 10 then
+        Inventory.SetStackCount(player,bottle, 10)
+    end
+
 end
