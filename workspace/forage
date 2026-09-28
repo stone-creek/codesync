@@ -1,0 +1,105 @@
+--=========================================================
+-- Forage
+
+--[[
+
+Foraging subsystem
+
+Running around the map will casually spawn a "node" where a random item can be
+obtained. Walking will increase the chances of spawn. The node is visible to 
+everyone, and will be destroyed after looted. Also, if no one loots it, it 
+will disappear after some time if there's no one nearby. A node won't despawn 
+near players.
+
+For now there will be just one mesh model for the foraging node - a little 
+mound on the floor. There will be a highlight effect and during night time it 
+will be more visible, encouraging people to forage at night. This highlight 
+effect can be easily disabled.
+
+Edge cases:
+- If a player keeps running on the map, "popping" foraging nodes.
+
+]]
+
+-------------------------------------------------------------------------------
+local Forage = {}
+-------------------------------------------------------------------------------
+-- Get the list of items, and get a random one
+Forage.GetRandomItem = function()
+    
+    local all_classes = WorldItems.GetClasses()
+    -- for k,v in ipairs(all_classes) do
+    --     Game.Print(string.format("   %d - %s", k, v.handle))
+    -- end
+
+    local total_weight = 0
+
+    for _, item in ipairs(all_classes) do
+        if item.rarity > 0 then
+            total_weight = total_weight + item.rarity
+            Game.Print(string.format("   %d    - %s", item.rarity, item.handle))
+        end
+    end
+
+
+    if total_weight <= 0 then return nil end
+
+    local roll = math.random() * total_weight
+    Game.Print(string.format("Roll: %.1f     Total weight: %d", roll, total_weight))
+
+    for _, item in ipairs(all_classes) do
+        if item.rarity > 0 then
+            roll = roll - item.rarity
+            if roll <= 0 then
+                return item
+            end
+        end
+    end
+
+    return nil
+end
+-------------------------------------------------------------------------------
+-- Add the /forage command for tests.
+Terminal.Register("forage", "Spawn a test node for foraging.", function(player)
+
+    local x,y,z = Game.InFrontOf(player,100,0)
+    local guid = Game.CreateGuid()
+
+    local new_item = WorldItems.SpawnItemAt("forage", x, y, z, math.random(360))
+    Effects.Glow(new_item, true)
+
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forage", Events.OnLoad,
+function(item_forage)
+    Game.Print("AHOY" .. item_forage)
+    Effects.Glow(item_forage, true)
+end)
+-------------------------------------------------------------------------------
+WorldItems.ReactsTo("forage", Events.OnClick, 
+function(player,clicked_forage)
+    options = {}
+    -----------------------------------------------------
+    menu_check = {
+        caption = "Check for items", 
+        on_click = function(player, item) 
+            Forage.OpenForage(player, clicked_forage)
+        end }
+    table.insert(options, menu_check)
+    -----------------------------------------------------
+    Game.Menu(player, clicked_forage, options)
+end)
+-----------------------------------------------------------
+-- 
+Forage.OpenForage = function(player, worlditem_forage)
+
+    -- Forage.GetRandomItem()
+    local random_item = Forage.GetRandomItem()
+    -- Game.Print(random_item.handle)
+    
+    WorldItems.DespawnItem(worlditem_forage)
+    Inventory.AddTo(player, random_item.handle)
+
+    Players.FlashMessage(player, string.format("Obtained: %s", random_item.name))
+
+end

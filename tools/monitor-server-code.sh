@@ -4,10 +4,10 @@ if [ -z "$auth_token" ]; then
     source initenv.sh
 fi
 
-echo "Monitors the directory ./servers/development for file changes,"
-echo "and when changes are detected, will upload as a PATCH to the"
-echo "local development server. Use ./tools/upload-server-code-production"
-echo "to move the contents of ./servers/development files to production."
+# echo "Monitors the directory ./servers/development for file changes,"
+# echo "and when changes are detected, will upload as a PATCH to the"
+# echo "local development server. Use ./tools/upload-server-code-production"
+# echo "to move the contents of ./servers/development files to production."
 
 WATCH_DIR="./../servers/development"
 TEMP_FILE="/tmp/temp-server-code.lua"
@@ -33,10 +33,15 @@ get_snapshot() {
 }
 
 push_to_server() {
-    curl -X PATCH "http://localhost/api/v2/server/d2beef0b-5280-4e05-8c2e-abc36f29dd18" \
+    status=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH "http://localhost/api/v2/server/C1A7AB-live-server" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $auth_token" \
-    -d "{\"sourcecode\": $(cat $TEMP_FILE | jq -Rs .)}"
+    -d "{\"sourcecode\": $(jq -Rs . "$TEMP_FILE")}")
+    if [ "$status" -ge 400 ]; then
+        echo "Push failed (HTTP $status)"
+    else
+        echo "Push succeeded (HTTP $status)"
+    fi
 }
 
 echo "Watching $WATCH_DIR for changes..."

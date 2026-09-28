@@ -9,10 +9,10 @@ trap 'rm -f "$TEMP_FILE" "$RESPONSE_FILE"' EXIT
 
 read -p "Working directory (default: development): " work_dir
 work_dir="${work_dir:-development}"
-read -p "Server address (default: http://127.0.0.1:80): " server_address
-server_address="${server_address:-http://127.0.0.1:80}"
-read -p "Server guid (default: c1a7...01f6): " server_guid 
-server_guid="${server_guid:-c1a7ab18-b3f5-48c0-b7a5-f56ce0bc01f6}"
+read -p "Server address (default: https://stonecreek.pro): " server_address
+server_address="${server_address:-https://stonecreek.pro}"
+read -p "Server guid (default: C1A7AB-live-server): " server_guid 
+server_guid="${server_guid:-C1A7AB-live-server}"
 read -p "Enter username (default: Steinbach): " username
 username="${username:-Steinbach}"
 read -sp "Enter password: " password

@@ -10,7 +10,7 @@ Game.SubscribeTo(Events.OnEverySecond, function()
     local player_count = Players.Count()
     local zombie_count = Zombies.Count()
 
-    local max_zombies = (player_count + npc_count) * ZOMBIES_MULTIPLIER
+    local max_zombies = MAX_ZOMBIES
 
     local spawn_location = {
         x = -4930 + math.random(400),

@@ -29,6 +29,10 @@ Terminal.Register("teleport", "Teleport the player to a location.", function(pla
     Players.Teleport(player, coords.x, coords.y, coords.z)
 end)
 -----------------------------------------------------------
+Terminal.Register("cls", "Clear the terminal.", function(player,parameters)
+    Game.Print("[CLS]")
+end)
+-----------------------------------------------------------
 Terminal.Register("debugdot", "Create a debug dot ingame.", function(player,parameters)
     -- /debugdot 8595,-10856,200
     local coords = tokenizeCoords(parameters)

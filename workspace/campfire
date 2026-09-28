@@ -54,7 +54,6 @@ end)
 -----------------------------------------------------------
 WorldItems.ReactsTo("campfire", Events.OnClick, 
 function(player,clickedCampfire)
-    
     options = {}
     -----------------------------------------------------
     menu_addfuel = {

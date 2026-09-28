@@ -12,6 +12,8 @@ Events['OnRun'] = 9
 Events['OnZombieHit'] = 10
 Events['OnPlayerDied'] = 11
 Events['OnPlayerAttack'] = 12
+Events['OnPlayerOnline'] = 13
+Events['OnPlayerOffline'] = 14
 
 -------------------------------------------------------------------------------
 Game = {}
@@ -25,6 +27,10 @@ Game.Menu = function(player,item,options)
 end
 Game.SubscribeTo = function(event,callback)
     -- callback()
+end
+-------------------------------------------------------------------------------
+Terminal = {}
+Terminal.Register= function() 
 end
 -------------------------------------------------------------------------------
 Zombies = {}
