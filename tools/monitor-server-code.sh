@@ -4,13 +4,11 @@ if [ -z "$auth_token" ]; then
     source initenv.sh
 fi
 
-# echo "Monitors the directory ./servers/development for file changes,"
-# echo "and when changes are detected, will upload as a PATCH to the"
-# echo "local development server. Use ./tools/upload-server-code-production"
-# echo "to move the contents of ./servers/development files to production."
-
 WATCH_DIR="./../servers/development"
 TEMP_FILE="/tmp/temp-server-code.lua"
+
+trap 'rm -f "$TEMP_FILE"' EXIT
+
 INTERVAL=1  # Check every second
 
 consolidate() {

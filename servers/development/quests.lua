@@ -37,14 +37,20 @@ QuestMod.InitializePlayer = function (player)
    
 end
 
--- Add the player initialization to the online event, and also
--- run it on current online players
-
+-- Add the player initialization to the online event
 Game.SubscribeTo(Events.OnPlayerOnline, QuestMod.InitializePlayer)
+
+-- Run the initialization on all current online players
 for pos = 1, Players.Count() do
     QuestMod.InitializePlayer(Players.At(pos))
 end
 
+-- Cleanup when a player goes offline
+Game.SubscribeTo(Events.OnPlayerOffline, function(player)
+    NotificationsDataWater[player] = nil
+end)
+
+-------------------------------------------------------------------------------
 local debouncer_check = Debouncer.new(2) -- every 2 seconds
 Events.SubscribeTo("every.second", function()
 
