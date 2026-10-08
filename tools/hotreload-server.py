@@ -12,11 +12,22 @@ import urllib.request
 from pathlib import Path
 
 POLL_INTERVAL = 1  # seconds
-
+SERVER_GUIDS = ["C1A7AB-live-server", "D2BEEF-dev-server"]
+SERVER_ADDRESSES = ["https://stonecreek.pro", "http://localhost"]
 
 def ask(label, default=None):
     prompt = f"{label} [{default}]: " if default else f"{label}: "
     return input(prompt).strip() or default
+
+
+def choose(label, options, default=0):
+    for i, option in enumerate(options, 1):
+        print(f"  {i}) {option}")
+    while True:
+        answer = ask(label, str(default + 1))
+        if answer.isdigit() and 1 <= int(answer) <= len(options):
+            return options[int(answer) - 1]
+        print(f"Please enter a number between 1 and {len(options)}.")
 
 
 def login(server, user, password):
@@ -112,8 +123,8 @@ def watch(watch_dir, server, guid, token):
 def main():
     try:
         workdir = ask("Working directory", "development")
-        server = ask("Server address", "http://localhost")
-        guid = ask("Server GUID", "C1A7AB-live-server")
+        server = choose("Server address", SERVER_ADDRESSES)
+        guid = choose("Server GUID", SERVER_GUIDS)
         user = ask("User name", "Steinbach")
         password = getpass.getpass("Password: ")
         if not password:
