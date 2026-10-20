@@ -6,10 +6,6 @@
 -- Zombies cannot spawn too close to players
 -- Zombies won't spawn if there are more than X nearby
 
-
-
-
-
 -- Maybe:
 --      Zombies cannot spawn indoors.
 
@@ -83,7 +79,7 @@ end
 
 --=========================================================
 
-local debouncer_zombies = Debouncer.new(5) -- NEW_ZOMBIE_MIN_INTERVAL_SECONDS)
+local debouncer_zombies = Debouncer.new(NEW_ZOMBIE_MIN_INTERVAL_SECONDS)
 Game.SubscribeTo(Events.OnEverySecond, function()
 
     if debouncer_zombies:call() then return end
