@@ -9,4 +9,3 @@ function(player,inventory_guid,class)
     Inventory.RemoveFrom(player, inventory_guid)
 
 end)
-
