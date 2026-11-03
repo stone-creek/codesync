@@ -14,10 +14,10 @@ Use the commands inside the 'tools' directory:
 
 ```
 python3 auth.py --url=[url] --login=[login] --password=[password]
-python3 download.py --url=[url] --auth=[token] --location=[workspace]
-python3 diff.py --url=[url] --auth=[token] --location=[workspace]
-python3 test.py --url=[url] --location=[workspace]
-python3 upload.py --url=[url] --auth=[token] --location=[workspace]
+python3 download.py --url=[url] --auth=[token] --location=[mods]
+python3 diff.py --url=[url] --auth=[token] --location=[mods]
+python3 test.py --url=[url] --location=[mods]
+python3 upload.py --url=[url] --auth=[token] --location=[mods]
 ```
 
 ## Typical workflow
@@ -43,7 +43,7 @@ cd tools
 ./monitor-mods.sh
 ```
 
-It will check for changes in the 'workspace' directory, and if any, will run test.py and - if tests pass - will upload to the server.
+It will check for changes in the 'mods' directory, and if any, will run test.py and - if tests pass - will upload to the server.
 
 ## Server game mode modules
 
