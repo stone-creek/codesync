@@ -43,6 +43,7 @@ function EquipAxe(player)
     Players.SetMetadata(player, "equipped", "axe")
 
 end
+
 -------------------------------------------------------------------------------
 WorldItems.ReactsTo("axe", Events.OnItemUse,
 function(player,inventory_guid,class)

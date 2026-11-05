@@ -3,11 +3,12 @@
 Standard library only (Python 3.6+).
 """
 import getpass
+import hashlib
 import json
 import sys
-import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -54,60 +55,85 @@ def login(server, user, password):
     return token
 
 
-def snapshot(watch_dir):
+def get_hashes(server, token):
+    """Fetch all items and return {itemHandle: md5 hex digest of sourcecode}."""
+    url = server.rstrip("/") + "/api/v2/items"
+    req = urllib.request.Request(
+        url, method="GET",
+        headers={"Accept": "application/json", "Authorization": f"Bearer {token}"},
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        sys.exit(f"HTTP {e.code}: {e.read().decode('utf-8', 'replace')}")
+    except urllib.error.URLError as e:
+        sys.exit(f"Connection failed: {e.reason}")
+    except json.JSONDecodeError:
+        sys.exit("Server response is not valid JSON.")
+
+    hashes = {}
+    for item in data.get("items", []):
+        sourcecode = item.get("sourcecode") or ""
+        hashes[item["itemHandle"]] = hashlib.md5(sourcecode.encode("utf-8")).hexdigest()
+    return hashes
+
+
+def local_hashes(watch_dir):
+    """Return {filename: md5 hex digest of contents}, hashed the same way as get_hashes."""
     return {
-        str(p): p.stat().st_mtime
-        for p in watch_dir.rglob("*")
+        p.name: hashlib.md5(p.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+        for p in watch_dir.iterdir()
         if p.is_file()
     }
 
-def push_to_server(server, guid, token, temp_path):
 
-    print(f"Push to server called.")
-    # with open(temp_path, "r", encoding="utf-8") as f:
-    #     sourcecode = f.read()
-
-    # url = server.rstrip("/") + "/api/v2/server/" + guid
-    # body = json.dumps({"sourcecode": sourcecode}).encode("utf-8")
-    # req = urllib.request.Request(
-    #     url, data=body, method="PATCH",
-    #     headers={
-    #         "Content-Type": "application/json",
-    #         "Accept": "application/json",
-    #         "Authorization": f"Bearer {token}",
-    #     },
-    # )
-
-    # try:
-    #     with urllib.request.urlopen(req, timeout=15) as resp:
-    #         print(f"Push succeeded (HTTP {resp.status})")
-    # except urllib.error.HTTPError as e:
-    #     print(f"Push failed (HTTP {e.code}): {e.read().decode('utf-8', 'replace')}")
-    # except urllib.error.URLError as e:
-    #     print(f"Push failed: {e.reason}")
-
-
-TEMP_PATH = Path(tempfile.gettempdir()) / "livecode-mods.lua"
-
-def on_change(watch_dir, server, guid, token):
-    with open(TEMP_PATH, "w", encoding="utf-8") as tmp:
-        files = sorted(watch_dir.glob("*.lua"))
-        for f in files:
-            tmp.write(f.read_text(encoding="utf-8"))
-            tmp.write("\n")
-    print(f"Consolidated source written to {TEMP_PATH}")
-    push_to_server(server, guid, token, TEMP_PATH)
+def on_change(watch_dir, server, token, changed):
+    """PATCH the sourcecode of each changed file to /api/v2/item/{itemHandle}. Returns the names that were uploaded."""
+    uploaded = []
+    for name in sorted(changed):
+        url = f"{server.rstrip('/')}/api/v2/item/{urllib.parse.quote(name, safe='')}"
+        sourcecode = (watch_dir / name).read_text(encoding="utf-8")
+        body = json.dumps({"sourcecode": sourcecode}).encode("utf-8")
+        req = urllib.request.Request(
+            url, data=body, method="PATCH",
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {token}",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                print(f"Uploaded {name} (HTTP {resp.status})")
+            uploaded.append(name)
+        except urllib.error.HTTPError as e:
+            print(f"Upload of {name} failed (HTTP {e.code}): {e.read().decode('utf-8', 'replace')}")
+        except urllib.error.URLError as e:
+            print(f"Upload of {name} failed: {e.reason}")
+    return uploaded
 
 
-def watch(watch_dir, server, guid, token):
+def watch(watch_dir, server, guid, token, hashes):
     print(f"Watching {watch_dir} for changes...")
-    last = snapshot(watch_dir)
+    known = dict(hashes)
+    unknown = set()  # local files with no matching item on the server, warned about once
     while True:
+        current = local_hashes(watch_dir)
+        changed = []
+        for name, digest in current.items():
+            if name not in hashes:
+                if name not in unknown:
+                    print(f"Skipping {name}: no item with that handle on the server.")
+                    unknown.add(name)
+            elif known.get(name) != digest:
+                changed.append(name)
+        if changed:
+            print(f"Changed: {', '.join(sorted(changed))}")
+            for name in on_change(watch_dir, server, token, changed):
+                known[name] = current[name]
         time.sleep(POLL_INTERVAL)
-        current = snapshot(watch_dir)
-        if current != last:
-            on_change(watch_dir, server, guid, token)
-            last = current
 
 
 def main():
@@ -126,97 +152,14 @@ def main():
         if not watch_dir.is_dir():
             sys.exit(f"Working directory not found: {watch_dir}")
 
-        watch(watch_dir, server, guid, token)
+        hashes = get_hashes(server, token)
+        # for handle, digest in sorted(hashes.items()):
+        #     print(f"{digest}  {handle}")
+
+        watch(watch_dir, server, guid, token, hashes)
     except KeyboardInterrupt:
         print()
         sys.exit(0)
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-# import requests
-# import argparse
-# import sys
-# import os
-
-# # Set up argument parser
-# parser = argparse.ArgumentParser(description="Compare code from classes at location to the server and upload.")
-# # parser.add_argument("--url", default="https://stonecreek.pro/api/v2/items", help="API items endpoint")
-# parser.add_argument("--url", required=True, help="API items endpoint")
-# parser.add_argument("--auth", required=True, help="Authentication token")
-# parser.add_argument("--location", default="../workspace", help="Directory with files")
-
-# args = parser.parse_args()
-
-# headers = {
-#     "Authorization": f"Bearer {args.auth}"
-# }
-
-# try:
-#     response = requests.get(args.url + "/api/v2/items", headers=headers)
-#     response.raise_for_status()
-
-#     data = response.json()
-    
-#     remote_jsons = {}
-#     remote_files = {}
-#     local_files = {}
-
-#     # Load remote files into the dictionary (key=class name)
-#     for item in data["items"]:
-#         class_name = item["itemHandle"]
-#         remote_jsons[class_name]=item
-#         remote_files[class_name]=''
-#         if item.get("sourcecode"):
-#             remote_files[class_name]=item["sourcecode"]
-
-#     # Load local files into the dictionary (key=filename)
-#     for filename in os.listdir(args.location):
-#         file_path = os.path.join(args.location, filename)
-#         if os.path.isfile(file_path):
-#             with open(file_path, "r", encoding="utf-8") as f:
-#                 local_files[filename] = f.read()
-
-#     # Get all filenames
-#     all_filenames = set(remote_files) | set(local_files)
-
-#     # Compare files
-#     for filename in sorted(all_filenames):
-#         # print(f"Processing: {filename}")
-#         content_remote = remote_files.get(filename)
-#         content_local = local_files.get(filename)
-
-#         if content_remote is None:
-#             raise Exception(f"File added locally but item not found: {filename}")
-
-#         elif content_local is None:
-#             if content_remote != '':
-#                 print(f"File removed locally: {filename}")
-
-#         elif content_remote != content_local:
-
-#             upload_data = remote_jsons.get(filename)
-#             # print(f"Uploading... {upload_data}")
-#             upload_data["sourcecode"] = content_local
-#             del upload_data["id"]
-#             del upload_data["createdAt"]
-#             del upload_data["updatedAt"]
-
-#             print(f"Updating file: {filename}...")
-#             response = requests.put(args.url + "/api/v2/item", json=upload_data, headers=headers)
-#             print(f"File {filename} successfully updated.")
-#             response.raise_for_status()
-        
-
-# except requests.exceptions.HTTPError as http_err:
-#     print(f"HTTP error occurred: {http_err} - {response.text}")
-# except Exception as err:
-#     print(f"Other error occurred: {err}")
-

@@ -11,3 +11,4 @@ function(player,inventory_guid,class)
     Game.Print("drained water from bottle")
 
 end)
+
